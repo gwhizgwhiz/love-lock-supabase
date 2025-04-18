@@ -1,0 +1,259 @@
+/* App.css */
+:root {
+  /* your primary “RK red” + companion tones */
+  --brand-red:       #C42F33;
+  --brand-red-dark:  #A32829;
+  --text-primary:    #333;
+  --text-secondary:  #555;
+  --bg-page:         #f4f4f9;
+  --bg-card:         #ffffff;
+  --border-light:    rgba(0, 0, 0, 0.05);
+}
+
+/* …existing rules… */
+
+/* Inbox tweaks using vars */
+.inbox-container {
+  background-color: var(--bg-page);
+}
+
+.inbox-card {
+  background-color: var(--bg-card);
+  /* add a little accent stripe */
+  border-top: 4px solid var(--brand-red);
+}
+
+.inbox-card h1 {
+  color: var(--brand-red);
+}
+
+.inbox-card p {
+  color: var(--text-secondary);
+}
+
+/* message list */
+.message-item {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+}
+.message-item:nth-child(odd) {
+  background-color: #fcf2f2; /* very light red tint for stripes */
+}
+
+/* reuse your .btn but override hover from vars */
+.btn {
+  background-color: var(--brand-red);
+}
+.btn:hover {
+  background-color: var(--brand-red-dark);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.home-page {
+  text-align: center;
+  padding: 20px;
+}
+
+.logo {
+  width: 200px; /* Adjust logo size */
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #333;
+}
+
+p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.home-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  background-color: #C42F33;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background-color: white;
+  color: #C42F33;
+  border-color: #C42F33;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* Container for the login page */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: row;  /* Side by side: Image on left, form on right */
+}
+
+/* Style for the login image (left side) */
+.login-image {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for the login form (right side) */
+.login-form {
+  flex: 1;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  margin-left: 20px; /* Space between the image and form */
+}
+
+/* Form heading */
+.login-form h1 {
+  text-align: center;
+  font-size: 2rem;
+  color: #333;
+}
+
+/* Error message styling */
+.error-message {
+  color: red;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Input fields and labels */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.input-field:focus {
+  border-color: #C42F33;
+  outline: none;
+  background-color: #fff;
+}
+
+/* Button styling */
+.btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 1.1rem;
+  background-color: #C42F33;  /* Button color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn:hover {
+  background-color: #A32829;
+}
+
+/* Sign up link */
+.signup-link {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.signup-link a {
+  color: #C42F33;
+  text-decoration: none;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Only affects the Sign Up page */
+.login-container.signup-page {
+  display: flex;           
+  flex-direction: row;     
+  align-items: center;     
+  justify-content: center; 
+  gap: 2rem;               
+  min-height: 100vh;       
+  padding: 2rem;           
+}
+
+/* Ensure the image scales nicely */
+.signup-page .login-image {
+  flex: 0 1 400px;
+  display: flex;
+  justify-content: center;
+}
+.signup-page .login-img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Let the form fill the rest of the space */
+.signup-page .login-form {
+  flex: 1 1 400px;
+  width: 100%;
+}
+
+/* Mobile fallback */
+@media (max-width: 768px) {
+  .login-container.signup-page {
+    flex-direction: column;
+  }
+  .signup-page .login-image {
+    margin-bottom: 2rem;
+  }
+}
