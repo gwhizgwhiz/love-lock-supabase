@@ -68,3 +68,214 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+Love Lock
+
+A social platform built with React and Supabase that enables users to connect, interact, and build trust through a combination of profiles, messaging, badges, and trust scores.
+
+Table of Contents
+
+Features
+
+Tech Stack
+
+Project Structure
+
+Supabase Setup
+
+Environment Variables
+
+Scripts
+
+Database Schema & Policies
+
+Authentication & Authorization
+
+API & RPC Endpoints
+
+Trust Scoring & Badges
+
+Notifications
+
+Contributing
+
+License
+
+Features
+
+User Authentication: Email signup, login, and email verification.
+
+Profiles: Searchable list of user profiles with detailed view, trust scores, and badges.
+
+Messaging: Secure threads and inbox between users and persons of interest (POIs).
+
+Trust System: Automated trust score calculation, manual overrides, and badge assignment.
+
+Moderation: Users can flag content; moderators review flags and adjust trust impact.
+
+Notifications: Real-time notifications with dispatch logs and user preferences.
+
+Tech Stack
+
+Frontend: React, React Router DOM, Tailwind CSS (if used), Supabase JS client
+
+Backend / Database: Supabase (Postgres), SQL + PL/pgSQL functions, Row-Level Security (RLS)
+
+Local Development: Docker (via Supabase CLI), concurrently for dev workflow
+
+Project Structure
+
+love-lock-supabase/         # root
+├── frontend/               # React app
+│   ├── public/
+│   ├── src/
+│   │   ├── pages/          # SignUp, LogIn, ProfilesPage, ProfileDetail, ThreadsPage, Thread, Inbox, VerifyEmail
+│   │   ├── components/     # RequireAuth, UI components
+│   │   ├── supabaseClient.js
+│   │   └── App.js
+│   └── package.json
+├── supabase/               # Supabase local config & migrations
+│   ├── config.toml
+│   ├── migrations/
+│   └── seed.sql
+├── .env                    # Frontend env (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)
+├── package.json            # root scripts, devDependencies
+└── README.md               # you are here
+
+Supabase Setup
+
+Install
+
+npm install -g supabase
+
+Initialize local project (already done)
+
+supabase init
+
+Start local services
+
+npm start
+# runs: npx supabase start && cd frontend && npm install && npm start
+
+Run migrations
+
+npm run migrate:push
+npm run migrate:status
+
+Reset / seed
+
+supabase db reset
+
+Environment Variables
+
+Create a .env in frontend/:
+
+NEXT_PUBLIC_SUPABASE_URL= http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY= <anon key printed by `supabase start`>
+
+Scripts
+
+Root (love-lock-supabase/package.json):
+
+{
+  "scripts": {
+    "start": "concurrently \"npx supabase start\" \"npm run start:frontend\"",
+    "start:frontend": "cd frontend && npm install && npm start",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "migrate:push": "npx supabase db push",
+    "migrate:status": "npx supabase db status",
+    "supabase:login": "npx supabase login"
+  }
+}
+
+Frontend (frontend/package.json):
+
+{
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  }
+}
+
+Database Schema & Policies
+
+Tables include:
+
+alias, comment, content_flag, inbox, interaction, interaction_reply, message, message_request, notification, notification_dispatch_log, pinned_message_user, person_of_interest, trust_score_log, user_profile, etc.
+
+Each table is protected by Row‑Level Security policies (RLS) defined in your Supabase project, ensuring:
+
+Public read on safe data (alias, comment, user_profile).
+
+Users can only modify their own records (INSERT/UPDATE on their comments, interactions, profiles).
+
+Moderators/Admins have elevated rights (flag review, dispatch logs).
+
+Authentication & Authorization
+
+Built using Supabase Auth (email + magic link / password).
+
+Users must verify email before accessing protected routes (RequireAuth component).
+
+JWT claims (app_metadata.role) determine moderator/admin privileges via custom functions is_admin().
+
+API & RPC Endpoints
+
+Supabase auto‑generated RESTful endpoints for tables/views and custom RPC functions:
+
+Search Profiles: rpc/search_profiles for filtered profile lists.
+
+Get Profile: rpc/get_profile_by_slug returns detailed POI record.
+
+Messaging:
+
+rpc/send_message, rpc/get_my_conversations, rpc/get_my_message_history, rpc/get_unread_count.
+
+Notifications:
+
+rpc/get_user_notifications, rpc/get_unread_notifications_count, rpc/mark_all_notifications_read, etc.
+
+Use the Supabase JS client in supabaseClient.js to call these.
+
+Trust Scoring & Badges
+
+Trust Score: Aggregated via recalculate_trust_score() trigger on interaction changes.
+
+Badge Assignment: assign_trust_badge() logic runs via trg_update_trust_badge trigger.
+
+Manual Overrides: Moderators can use override_trust_score().
+
+Flag Impact: Accepted flags on interactions deduct from trust via apply_trust_impact.
+
+Badges (trusted, flagged, etc.) appear on profile views.
+
+Notifications
+
+New notifications inserted via triggers (notify_cringe_followers, dispatch_single_notification).
+
+User preferences stored in user_notification_preference.
+
+Audit logs saved to notification_dispatch_log.
+
+Frontend polling or realtime listeners update the UI.
+
+Contributing
+
+Fork the repo
+
+Create a feature branch
+
+Commit your changes with clear messages
+
+Run migrations & update seed.sql if needed
+
+Submit a PR for review
+
+License
+
+MIT © Love Lock Team
+
+
