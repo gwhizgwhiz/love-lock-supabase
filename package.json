@@ -1,41 +1,17 @@
 {
-  "name": "lovelock-frontend",
-  "version": "0.1.0",
+  "name": "love-lock-supabase",
+  "version": "1.0.0",
   "private": true,
-  "dependencies": {
-    "@supabase/supabase-js": "^2.49.4",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^7.5.0",
-    "react-scripts": "^5.0.1",
-    "web-vitals": "^2.1.4"
-  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start:frontend": "cd frontend && npm install && npm start",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "start": "npm run start:frontend",
+    "build": "npm run build:frontend",
+    "migrate:push": "npx supabase db push",
+    "migrate:status": "npx supabase db status",
+    "supabase:login": "npx supabase login"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "supabase": ">=1.8.1"
   }
 }
