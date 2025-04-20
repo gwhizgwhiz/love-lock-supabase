@@ -3,15 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start:frontend": "cd frontend && npm install && npm start",
-    "build:frontend": "cd frontend && npm install && npm run build",
-    "start": "npm run start:frontend",
-    "build": "npm run build:frontend",
-    "migrate:push": "npx supabase db push",
-    "migrate:status": "npx supabase db status",
-    "supabase:login": "npx supabase login"
+    "start":           "concurrently \"npx supabase start\" \"npm run start:frontend\"",
+    "start:frontend":  "cd frontend && npm install && npm start",
+    "build":           "npm run build:frontend",
+    "build:frontend":  "cd frontend && npm install && npm run build",
+    "migrate:push":    "npx supabase db push",
+    "migrate:status":  "npx supabase db status",
+    "supabase:login":  "npx supabase login"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "supabase": ">=1.8.1"
   }
 }

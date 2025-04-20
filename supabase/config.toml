@@ -132,7 +132,7 @@ deno_version  = 1
 
 # -------------------------------------------------------------------
 [analytics]
-enabled = true
+enabled = false
 port    = 54327
 backend = "postgres"
 
