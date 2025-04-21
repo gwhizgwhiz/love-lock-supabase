@@ -154,6 +154,8 @@ supabase init
 
 Start local services
 
+Make sure Docker Desktop is running (or WSL integration enabled) before npm run dev.
+
 npm start
 # runs: npx supabase start && cd frontend && npm install && npm start
 

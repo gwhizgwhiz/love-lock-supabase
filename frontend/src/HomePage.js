@@ -14,6 +14,10 @@ const HomePage = () => {
         <Link to="/signup">
           <button className="btn">Sign Up</button>
         </Link>
++       {/* New button to log an experience */}
++       <Link to="/add-experience">
++         <button className="btn">Log an Experience</button>
++       </Link>
       </div>
     </div>
   );

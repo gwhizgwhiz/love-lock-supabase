@@ -12,6 +12,10 @@ import ThreadsPage   from './pages/Thread';
 import Thread        from './pages/Thread';    // ← now correctly in pages/
 import Inbox         from './pages/Inbox';
 import RequireAuth   from './components/RequireAuth';
+import RequireAdmin from './components/RequireAdmin';
+import RatingCriteriaAdmin from './components/RatingCriteriaAdmin';
+import AddExperience from './components/AddExperience';
+
 
 export default function App() {
   return (
@@ -39,7 +43,6 @@ export default function App() {
             </RequireAuth>
           }
         />
-
         <Route
           path="/threads"
           element={
@@ -56,7 +59,6 @@ export default function App() {
             </RequireAuth>
           }
         />
-
         <Route
           path="/inbox"
           element={
@@ -65,9 +67,17 @@ export default function App() {
             </RequireAuth>
           }
         />
-
+        <Route
+          path="/admin/criteria"
+          element={
+            <RequireAdmin>
+              <RatingCriteriaAdmin />
+            </RequireAdmin>
+          }
+        />
         {/* Fallback: redirect all others to login */}
         <Route path="*" element={<LogIn />} />
+        <Route path="/add-experience" element={<AddExperience />} />
       </Routes>
     </BrowserRouter>
   );
