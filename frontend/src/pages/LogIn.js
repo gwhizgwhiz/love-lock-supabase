@@ -22,7 +22,7 @@ export default function LogIn() {
         navigate('/verify-email');
         return;
       }
-      navigate('/inbox');
+      navigate('/'); // go to HomePage
     } catch (err) {
       setError(err.message);
     }

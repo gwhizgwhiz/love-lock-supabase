@@ -2,6 +2,12 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import HomePage    from './HomePage';
+import SignUp      from './pages/SignUp';
+import LogIn       from './pages/LogIn';
+import VerifyEmail from './pages/VerifyEmail';
+
 import SignUp        from './pages/SignUp';
 import LogIn         from './pages/LogIn';
 import VerifyEmail   from './pages/VerifyEmail';
@@ -75,6 +81,8 @@ export default function App() {
             </RequireAdmin>
           }
         />
+        {/* Landing / Home */}
+        <Route path="/" element={<HomePage />} />
         {/* Fallback: redirect all others to login */}
         <Route path="*" element={<LogIn />} />
         <Route path="/add-experience" element={<AddExperience />} />
