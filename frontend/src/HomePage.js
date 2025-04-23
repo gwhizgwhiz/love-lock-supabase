@@ -1,26 +1,88 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import logo from './assets/logo.png'; // Import your logo
+// frontend/src/HomePage.js
+import React, { useEffect, useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import supabase from './supabaseClient';
+import logo from './assets/logo.png';
+import './App';
 
-const HomePage = () => {
+export default function HomePage() {
+  const [user, setUser] = useState(null);
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const dropdownRef = useRef();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUser(data.user);
+    });
+  }, []);
+
+  // close dropdown on outside click
+  useEffect(() => {
+    function onClick(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+
+  const initials = user?.email ? user.email.charAt(0).toUpperCase() : '?';
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
+
   return (
-    <div className="home-page">
-      <img src={logo} alt="App Logo" className="logo" />
-      <p>Your Heart, Your Lock, Your Trust</p>
-      <div className="home-buttons">
-        <Link to="/login">
-          <button className="btn">Log In</button>
+    <div className="home-container">
+      <header className="header">
+        <Link to="/">
+          <img src={logo} alt="App Logo" className="logo" />
         </Link>
-        <Link to="/signup">
-          <button className="btn">Sign Up</button>
-        </Link>
-+       {/* New button to log an experience */}
-+       <Link to="/add-experience">
-+         <button className="btn">Log an Experience</button>
-+       </Link>
-      </div>
+        {user && (
+          <div className="header-right" ref={dropdownRef}>
+            <div
+              className="avatar"
+              onClick={() => setOpen(o => !o)}
+              title={user.email}
+            >
+              {initials}
+            </div>
+            {open && (
+              <div className="dropdown-menu">
+                <Link to="/settings" className="dropdown-item" onClick={() => setOpen(false)}>
+                  Settings
+                </Link>
+                <Link to="/preferences" className="dropdown-item" onClick={() => setOpen(false)}>
+                  Preferences
+                </Link>
+                <button className="dropdown-item logout-item" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </header>
+
+      <section className="banner">
+        <h1>Your Heart, Your Lock, Your Trust</h1>
+        <p>
+          Welcome to Love Lock—share your experiences, build trust, and connect
+          with confidence. Log an experience, explore profiles, and see how
+          trust grows with every interaction.
+        </p>
+        <div className="home-buttons">
+          <Link to="/add-experience">
+            <button className="btn">Log an Experience</button>
+          </Link>
+          <Link to="/profiles">
+            <button className="btn">Browse Profiles</button>
+          </Link>
+        </div>
+      </section>
     </div>
   );
-};
-
-export default HomePage;
+}

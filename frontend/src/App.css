@@ -14,8 +14,6 @@
   --border-light:    rgba(0, 0, 0, 0.05);
 }
 
-/* …existing rules… */
-
 /* Inbox tweaks using vars */
 .inbox-container {
   display: flex;
@@ -319,3 +317,152 @@ a {
     margin-bottom: 2rem;
   }
 }
+
+/* HomePage.css */
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header .logo {
+  width: 75px;
+}
+
+.header .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #C42F33;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.banner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+  color: white;
+  padding: 4rem 2rem;
+}
+
+.banner h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.banner p {
+  font-size: 1.25rem;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.home-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  background: #ffffff;
+  color: #C42F33;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn:hover {
+  background: rgba(255,255,255,0.8);
+  color: #a12a2e;
+}
+
+/* Dropdown container */
+.header .header-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* The actual dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 60px; /* just below the header bar */
+  right: 0;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  z-index: 20;
+  min-width: 150px;
+}
+
+/* Links and button inside dropdown */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+/* Style for the logout button variant */
+.logout-item {
+  background: none;
+  border: none;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  color: #C42F33;
+}
+
+.logout-item:hover {
+  background: #fdecea;
+}
+
+.page-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-container h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+

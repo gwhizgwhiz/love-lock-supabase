@@ -7,19 +7,16 @@ import SignUp      from './pages/SignUp';
 import LogIn       from './pages/LogIn';
 import VerifyEmail from './pages/VerifyEmail';
 
-import SignUp        from './pages/SignUp';
-import LogIn         from './pages/LogIn';
-import VerifyEmail   from './pages/VerifyEmail';
-
 import ProfilesPage  from './pages/ProfilesPage';
 import ProfileDetail from './pages/ProfileDetail';
-import ThreadsPage   from './pages/Thread';
 import Thread        from './pages/Thread';    // ← now correctly in pages/
 import Inbox         from './pages/Inbox';
 import RequireAuth   from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
 import RatingCriteriaAdmin from './components/RatingCriteriaAdmin';
 import AddExperience from './components/AddExperience';
+import Settings      from './pages/Settings';
+import Preferences   from './pages/Preferences';
 
 
 export default function App() {
@@ -52,7 +49,7 @@ export default function App() {
           path="/threads"
           element={
             <RequireAuth>
-              <ThreadsPage />
+              <Thread />
             </RequireAuth>
           }
         />
@@ -80,6 +77,23 @@ export default function App() {
             </RequireAdmin>
           }
         />
+        {/* Protected: user menu targets */}
+        <Route
+           path="/settings"
+           element={
+             <RequireAuth>
+               <Settings />
+             </RequireAuth>
+           }
+         />
+         <Route
+           path="/preferences"
+           element={
+             <RequireAuth>
+               <Preferences />
+             </RequireAuth>
+           }
+         />
         {/* Landing / Home */}
         <Route path="/" element={<HomePage />} />
         {/* Fallback: redirect all others to login */}
