@@ -76,7 +76,7 @@ export default function HomePage() {
         </p>
         <div className="home-buttons">
           <Link to="/add-experience">
-            <button className="btn">Log an Experience</button>
+            <button className="btn">Rate a Date</button>
           </Link>
           <Link to="/profiles">
             <button className="btn">Browse Profiles</button>

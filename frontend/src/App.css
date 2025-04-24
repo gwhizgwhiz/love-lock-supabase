@@ -2,9 +2,9 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 
-/* now your :root and other rules */
+/* :root and other rules */
 :root {
-  /* your primary “RK red” + companion tones */
+  /* primary “Red” + companion tones */
   --brand-red:       #C42F33;
   --brand-red-dark:  #A32829;
   --text-primary:    #333;
@@ -456,9 +456,9 @@ a {
 }
 
 .page-container {
-  padding: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 1rem;
 }
 
 .page-container h2 {
@@ -466,3 +466,198 @@ a {
   color: #333;
 }
 
+.settings-form .input-group {
+  margin-bottom: 1rem;
+}
+
+.settings-form label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+}
+
+.settings-form input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+}
+
+.alert {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+}
+.alert.success {
+  background: #e6ffed;
+  color: #2f8132;
+}
+.alert.error {
+  background: #ffe6e6;
+  color: #813232;
+}
+.alert.info {
+  background: #eef2ff;
+  color: #313281;
+}
+
+/* Avatar group */
+.avatar-group img.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+}
+
+/* File input reset */
+.avatar-group input[type="file"] {
+  display: block;
+}
+
+.profiles-container {
+  padding: 2rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.profile-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-search-form input {
+  flex: 1 1 150px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+}
+
+.profiles-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.profile-card {
+  text-decoration: none;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+  color: inherit;
+}
+
+.profile-card:hover {
+  transform: translateY(-4px);
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+}
+
+.trust-score {
+  margin: 0.5rem 0;
+}
+
+.score-number {
+  margin-left: 0.25rem;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+/*profiles detail css*/
+
+.detail-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  color: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+}
+
+.hero-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1.5rem;
+}
+
+.hero-info h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.trust-badge {
+  margin: 0.5rem 0;
+  font-size: 1.25rem;
+}
+
+.hero-stats span {
+  display: inline-block;
+  margin-right: 1rem;
+  font-size: 0.9rem;
+}
+
+.breakdown,
+.timeline {
+  margin-top: 2rem;
+}
+
+.breakdown .chart-placeholder {
+  height: 200px;
+  background: #f5f5f5;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+.timeline ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.timeline li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.timeline li.positive {
+  background: #e6ffed;
+}
+
+.timeline li.negative {
+  background: #ffe6e6;
+}
+
+.timeline li.neutral {
+  background: #eef2ff;
+}
+
+.empty-state {
+  text-align: center;
+  color: #666;
+  padding: 2rem 0;
+}

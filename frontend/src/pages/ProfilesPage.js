@@ -1,107 +1,82 @@
-// src/pages/ProfilesPage.js
-import React, { useState, useEffect } from 'react';
-import { Link }                       from 'react-router-dom';
-import supabase                       from '../supabaseClient';
+// frontend/src/pages/ProfilesPage.js
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import supabase from '../supabaseClient';
 import '../App.css';
 
 export default function ProfilesPage() {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
-  const [filters, setFilters]   = useState({
-    alias:   '',
-    region:  '',
-    badge:   '',
-    platform:''
-  });
+  const [search, setSearch]     = useState('');
 
-  // Fetch either all or filtered
-  const load = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc(
-        'search_profiles',
-        {
-          alias_filter:     filters.alias || null,
-          region_filter:    filters.region || null,
-          badge_filter:     filters.badge || null,
-          platform_filter:  filters.platform || null,
-          min_trust_score:  null,
-          min_sentiment:    null,
-          min_interactions: null
-        }
-      );
-      if (error) throw error;
-      setProfiles(data);
-    } catch (err) {
-      setError(err.message);
+  useEffect(() => {
+    async function loadProfiles() {
+      const { data, error } = await supabase
+        .from('public_profile_view_shared')
+        .select(`
+          poi_id, slug, main_alias, avatar_url,
+          trust_score, known_region
+        `);
+      if (error) setError(error.message);
+      else setProfiles(data);
+      setLoading(false);
     }
-    setLoading(false);
-  };
+    loadProfiles();
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  // client-side filter
+  const q = search.toLowerCase();
+  const filtered = profiles.filter(p =>
+    p.main_alias.toLowerCase().includes(q) ||
+    p.slug.toLowerCase().includes(q) ||
+    (p.known_region || '').toLowerCase().includes(q)
+  );
 
-  const handleChange = e => {
-    setFilters(f => ({ ...f, [e.target.name]: e.target.value }));
-  };
-
-  const handleSearch = e => {
-    e.preventDefault();
-    load();
-  };
-
-  if (loading) return <div className="spinner" />;
+  if (loading) return <div className="spinner">Loading…</div>;
   if (error)   return <p className="empty-state">{error}</p>;
 
   return (
-    <div className="inbox-container">
-      <div className="inbox-card">
-        <h1>Find People</h1>
-
-        <form onSubmit={handleSearch} className="profile-search-form">
-          <input
-            name="alias"
-            value={filters.alias}
-            onChange={handleChange}
-            placeholder="Alias"
-          />
-          <input
-            name="region"
-            value={filters.region}
-            onChange={handleChange}
-            placeholder="Region"
-          />
-          <input
-            name="badge"
-            value={filters.badge}
-            onChange={handleChange}
-            placeholder="Badge"
-          />
-          <input
-            name="platform"
-            value={filters.platform}
-            onChange={handleChange}
-            placeholder="Platform"
-          />
-          <button className="btn" type="submit">Search</button>
-        </form>
-
-        {profiles.length === 0 ? (
-          <p className="empty-state">No profiles found.</p>
-        ) : (
-          <ul className="message-list">
-            {profiles.map(p => (
-              <li key={p.poi_id} className="message-item">
-                <Link to={`/profiles/${p.slug}`}>
-                  <strong>{p.main_alias}</strong>
-                  <p>Badge: {p.trust_badge}</p>
-                  <small>Region: {p.known_region}</small>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+    <div className="profiles-container">
+      <h2>Browse Profiles</h2>
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search by name, slug or region…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
       </div>
+
+      {filtered.length === 0 ? (
+        <p className="empty-state">No profiles match your search.</p>
+      ) : (
+        <div className="profiles-grid">
+          {filtered.map(p => (
+            <Link
+              key={p.poi_id}
+              to={`/profiles/${p.slug}`}
+              className="profile-card"
+            >
+              <img
+                src={p.avatar_url || '/default-avatar.png'}
+                alt={p.main_alias}
+                className="profile-avatar"
+              />
+              <h3>{p.main_alias}</h3>
+              <div className="trust-score">
+                {'❤️'.repeat(Math.round(p.trust_score))}
+                <span className="score-number">
+                  {p.trust_score.toFixed(1)}
+                </span>
+              </div>
+              {p.known_region && (
+                <small className="region">{p.known_region}</small>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
