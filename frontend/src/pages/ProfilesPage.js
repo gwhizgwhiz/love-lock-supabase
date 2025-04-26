@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import '../App.css';
+import '../App';
 
 export default function ProfilesPage() {
   const [profiles, setProfiles] = useState([]);
@@ -12,12 +12,10 @@ export default function ProfilesPage() {
 
   useEffect(() => {
     async function loadProfiles() {
+      setLoading(true);
       const { data, error } = await supabase
         .from('public_profile_view_shared')
-        .select(`
-          poi_id, slug, main_alias, avatar_url,
-          trust_score, known_region
-        `);
+        .select('poi_id,slug,main_alias,trust_score,known_region');
       if (error) setError(error.message);
       else setProfiles(data);
       setLoading(false);
@@ -25,7 +23,7 @@ export default function ProfilesPage() {
     loadProfiles();
   }, []);
 
-  // client-side filter
+  // client‐side filter
   const q = search.toLowerCase();
   const filtered = profiles.filter(p =>
     p.main_alias.toLowerCase().includes(q) ||
@@ -52,29 +50,33 @@ export default function ProfilesPage() {
         <p className="empty-state">No profiles match your search.</p>
       ) : (
         <div className="profiles-grid">
-          {filtered.map(p => (
-            <Link
-              key={p.poi_id}
-              to={`/profiles/${p.slug}`}
-              className="profile-card"
-            >
-              <img
-                src={p.avatar_url || '/default-avatar.png'}
-                alt={p.main_alias}
-                className="profile-avatar"
-              />
-              <h3>{p.main_alias}</h3>
-              <div className="trust-score">
-                {'❤️'.repeat(Math.round(p.trust_score))}
-                <span className="score-number">
-                  {p.trust_score.toFixed(1)}
-                </span>
-              </div>
-              {p.known_region && (
-                <small className="region">{p.known_region}</small>
-              )}
-            </Link>
-          ))}
+          {filtered.map(p => {
+            // clamp to non-negative hearts
+            const hearts = Math.max(0, Math.round(p.trust_score || 0));
+            return (
+              <Link
+                key={p.poi_id}
+                to={`/profiles/${p.slug}`}
+                className="profile-card"
+              >
+                <img
+                  src="/default-avatar.png"
+                  alt={p.main_alias}
+                  className="profile-avatar"
+                />
+                <h3>{p.main_alias}</h3>
+                <div className="trust-score">
+                  {'❤️'.repeat(hearts)}
+                  <span className="score-number">
+                    {(p.trust_score || 0).toFixed(1)}
+                  </span>
+                </div>
+                {p.known_region && (
+                  <small className="region">{p.known_region}</small>
+                )}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
