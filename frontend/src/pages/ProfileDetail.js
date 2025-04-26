@@ -11,6 +11,7 @@ export default function ProfileDetail() {
   const [interactions, setInteractions] = useState([]);
   const [breakdown, setBreakdown]       = useState([]);
   const [loading, setLoading]           = useState(true);
+  const [notFound, setNotFound]     = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -27,11 +28,13 @@ export default function ProfileDetail() {
         .eq('slug', slug)
         .single();
 
-      if (pErr || !p) {
-        navigate('/profiles');
-        return;
-      }
-      setProfile(p);
+        if (pErr || !p) {
+           // mark as not found, stop loading, and bail
+           setNotFound(true);
+           setLoading(false);
+           return;
+        }
+        setProfile(p);
 
       // 2) Timeline
       const { data: ints = [] } = await supabase
@@ -53,12 +56,13 @@ export default function ProfileDetail() {
   }, [slug, navigate]);
 
   if (loading) return <div className="spinner">Loading…</div>;
+  if (notFound) return <p className="empty-state">Profile not found.</p>;
 
   return (
     <div className="detail-container">
       <section className="hero">
-        <img
-          src={profile.avatar_url || '/default-avatar.png'}
+      <img
+          src={profile.photo_reference_url || '/default-avatar.png'}
           alt={profile.main_alias}
           className="hero-avatar"
         />

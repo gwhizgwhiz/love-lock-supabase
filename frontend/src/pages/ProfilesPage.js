@@ -15,7 +15,7 @@ export default function ProfilesPage() {
       setLoading(true);
       const { data, error } = await supabase
         .from('public_profile_view_shared')
-        .select('poi_id,slug,main_alias,trust_score,known_region');
+        .select('poi_id,slug,main_alias,photo_reference_url,trust_score,known_region');
       if (error) setError(error.message);
       else setProfiles(data);
       setLoading(false);
@@ -60,10 +60,10 @@ export default function ProfilesPage() {
                 className="profile-card"
               >
                 <img
-                  src="/default-avatar.png"
-                  alt={p.main_alias}
-                  className="profile-avatar"
-                />
+                src={p.photo_reference_url || '/default-avatar.png'}
+                alt={p.main_alias}
+                className="profile-avatar"
+              />
                 <h3>{p.main_alias}</h3>
                 <div className="trust-score">
                   {'❤️'.repeat(hearts)}
