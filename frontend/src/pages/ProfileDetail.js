@@ -1,23 +1,24 @@
-// frontend/src/pages/ProfileDetail.js
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate }     from 'react-router-dom';
-import supabase                        from '../supabaseClient';
-import defaultAvatar                   from '../assets/default-avatar.png';
+import { useParams, useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
 import '../App.css';
 
 export default function ProfileDetail() {
-  const { slug }                = useParams();
-  const navigate                = useNavigate();
-  const [profile, setProfile]   = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
+  const { slug } = useParams();
+  const navigate = useNavigate();
+
+  const [profile, setProfile] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
   const [interactions, setInteractions] = useState([]);
   const [breakdown, setBreakdown] = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
+
+      // 1) Fetch the profile row (with photo key)
       const { data: p, error: pErr } = await supabase
         .from('public_profile_view_shared')
         .select(`
@@ -41,16 +42,21 @@ export default function ProfileDetail() {
       }
       setProfile(p);
 
+      // 2) Resolve storage key → public URL
       if (p.photo_reference_url) {
-        const { data: urlData, error: urlErr } = supabase
+        const {
+          data: { publicUrl },
+          error: urlErr
+        } = supabase
           .storage
           .from('avatars')
           .getPublicUrl(p.photo_reference_url);
-        if (!urlErr && urlData?.publicUrl) {
-          setAvatarUrl(urlData.publicUrl);
+        if (!urlErr && publicUrl) {
+          setAvatarUrl(publicUrl);
         }
       }
 
+      // 3) Fetch interactions timeline
       const { data: ints = [] } = await supabase
         .from('public_interactions_view')
         .select('id, interaction_type, occurred_at, outcome_rating')
@@ -59,20 +65,29 @@ export default function ProfileDetail() {
         .limit(10);
       setInteractions(ints);
 
-      const { data: bd = [] } = await supabase
-        .rpc('get_criteria_breakdown', { _person_id: p.poi_id });
-      setBreakdown(bd);
+      // 4) Call the breakdown RPC (it now exists, thanks to our stub)
+      try {
+        const { data: bd = [] } = await supabase
+          .rpc('get_criteria_breakdown', { _person_id: p.poi_id });
+        setBreakdown(bd);
+      } catch (e) {
+        // if something still goes wrong, just leave breakdown empty
+        setBreakdown([]);
+      }
 
       setLoading(false);
     }
     load();
   }, [slug, navigate]);
 
-  if (loading)  return <div className="spinner">Loading…</div>;
+  if (loading) return <div className="spinner">Loading…</div>;
   if (notFound) return <p className="empty-state">Profile not found.</p>;
 
+  // clamp hearts to ≥0
+  const hearts = Math.max(0, Math.round(profile.trust_score || 0));
+
   return (
-    <div className="container">
+    <div className="detail-container">
       <section className="hero">
         <img
           src={avatarUrl}
@@ -82,9 +97,9 @@ export default function ProfileDetail() {
         <div className="hero-info">
           <h1>{profile.main_alias}</h1>
           <div className="trust-badge">
-            {'❤️'.repeat(Math.round(profile.trust_score))}
+            {'❤️'.repeat(hearts)}
             <span className="score-number">
-              {profile.trust_score.toFixed(1)}
+              {(profile.trust_score || 0).toFixed(1)}
             </span>
           </div>
           <div className="hero-stats">
@@ -112,7 +127,7 @@ export default function ProfileDetail() {
           <ul>
             {interactions.map(i => (
               <li key={i.id} className={`item ${i.outcome_rating}`}>
-                <span className="type">{i.interaction_type.replace('_',' ')}</span>
+                <span className="type">{i.interaction_type.replace('_', ' ')}</span>
                 <span className="time">{new Date(i.occurred_at).toLocaleString()}</span>
                 <span className="outcome">{i.outcome_rating}</span>
               </li>

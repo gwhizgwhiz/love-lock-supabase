@@ -1,9 +1,9 @@
 // frontend/src/HomePage.js
 import React, { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import supabase from './supabaseClient';
-import logo from './assets/logo.png';
-import './App';
+import { Link, useNavigate }                from 'react-router-dom';
+import supabase                             from './supabaseClient';
+import logo                                 from './assets/logo.png';
+import './App.css';  // <-- make sure to import the CSS file
 
 export default function HomePage() {
   const [user, setUser] = useState(null);
@@ -28,7 +28,9 @@ export default function HomePage() {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  const initials = user?.email ? user.email.charAt(0).toUpperCase() : '?';
+  const initials = user?.email
+    ? user.email.charAt(0).toUpperCase()
+    : '?';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -41,6 +43,7 @@ export default function HomePage() {
         <Link to="/">
           <img src={logo} alt="App Logo" className="logo" />
         </Link>
+
         {user && (
           <div className="header-right" ref={dropdownRef}>
             <div
@@ -52,17 +55,32 @@ export default function HomePage() {
             </div>
             {open && (
               <div className="dropdown-menu">
-                <Link to="/profile/edit" button className="dropdown-item" onClick={() => setOpen(false)}>
-                My Profile
+                <Link
+                  to="/profile/edit"
+                  className="dropdown-item"
+                  onClick={() => setOpen(false)}
+                >
+                  My Profile
                 </Link>
-                <Link to="/settings" className="dropdown-item" onClick={() => setOpen(false)}>
+                <Link
+                  to="/settings"
+                  className="dropdown-item"
+                  onClick={() => setOpen(false)}
+                >
                   Settings
                 </Link>
-                <Link to="/preferences" className="dropdown-item" onClick={() => setOpen(false)}>
+                <Link
+                  to="/preferences"
+                  className="dropdown-item"
+                  onClick={() => setOpen(false)}
+                >
                   Preferences
                 </Link>
-                <button className="dropdown-item logout-item" onClick={handleLogout}>
-                  Logout
+                <button
+                  className="logout-item"
+                  onClick={handleLogout}
+                >
+                  Log Out
                 </button>
               </div>
             )}
@@ -73,7 +91,7 @@ export default function HomePage() {
       <section className="banner">
         <h1>Your Heart, Your Lock, Your Trust</h1>
         <p>
-          Welcome to Love Lock—share your experiences, build trust, and connect
+          Welcome to Love Lock—share your experiences, build trust, and connect
           with confidence. Log an experience, explore profiles, and see how
           trust grows with every interaction.
         </p>
