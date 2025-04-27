@@ -7,6 +7,7 @@ import SignUp      from './pages/SignUp';
 import LogIn       from './pages/LogIn';
 import VerifyEmail from './pages/VerifyEmail';
 
+import ProfileEdit      from './pages/ProfileEdit';
 import ProfilesPage  from './pages/ProfilesPage';
 import ProfileDetail from './pages/ProfileDetail';
 import Thread        from './pages/Thread';    // ← now correctly in pages/
@@ -45,6 +46,11 @@ export default function App() {
             </RequireAuth>
           }
         />
+        <Route path="/profile/edit" 
+        element={
+            <RequireAuth>
+              <ProfileEdit/>
+            </RequireAuth>} />
         <Route
           path="/threads"
           element={

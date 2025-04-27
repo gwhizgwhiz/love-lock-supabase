@@ -661,3 +661,27 @@ a {
   color: #666;
   padding: 2rem 0;
 }
+
+.profile-edit-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.profile-edit-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-edit-container label {
+  display: flex;
+  flex-direction: column;
+}
+
+.avatar-preview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+}

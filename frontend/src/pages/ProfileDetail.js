@@ -1,24 +1,25 @@
 // frontend/src/pages/ProfileDetail.js
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate }             from 'react-router-dom';
-import supabase                              from '../supabaseClient';
+import { useParams, useNavigate }     from 'react-router-dom';
+import supabase                        from '../supabaseClient';
+import defaultAvatar                   from '../assets/default-avatar.png';
 import '../App.css';
 
 export default function ProfileDetail() {
-  const { slug }     = useParams();
-  const navigate     = useNavigate();
-  const [profile, setProfile]           = useState(null);
-  const [avatarUrl, setAvatarUrl]       = useState('/default-avatar.png');
+  const { slug }                       = useParams();
+  const navigate                       = useNavigate();
+  const [profile, setProfile]         = useState(null);
+  const [avatarUrl, setAvatarUrl]     = useState(defaultAvatar);
   const [interactions, setInteractions] = useState([]);
-  const [breakdown, setBreakdown]       = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [notFound, setNotFound]         = useState(false);
+  const [breakdown, setBreakdown]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [notFound, setNotFound]       = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
 
-      // 1) Fetch single row, including photo_reference_url
+      // 1) Fetch single row
       const { data: p, error: pErr } = await supabase
         .from('public_profile_view_shared')
         .select(`
@@ -42,21 +43,19 @@ export default function ProfileDetail() {
       }
       setProfile(p);
 
-      // 2) Resolve the storage key into a public URL
+      // 2) Turn storage key → public URL (or placeholder)
       if (p.photo_reference_url) {
-        const {
-          data: { publicUrl },
-          error: urlErr
-        } = supabase
+        const { data: urlData, error: urlErr } = supabase
           .storage
-          .from('avatars')   // ← your bucket name
+          .from('avatars')
           .getPublicUrl(p.photo_reference_url);
-        if (!urlErr && publicUrl) {
-          setAvatarUrl(publicUrl);
+
+        if (!urlErr && urlData?.publicUrl) {
+          setAvatarUrl(urlData.publicUrl);
         }
       }
 
-      // 3) Timeline
+      // 3) Recent interactions
       const { data: ints = [] } = await supabase
         .from('public_interactions_view')
         .select('id, interaction_type, occurred_at, outcome_rating')
@@ -65,7 +64,7 @@ export default function ProfileDetail() {
         .limit(10);
       setInteractions(ints);
 
-      // 4) Breakdown
+      // 4) Criteria breakdown
       const { data: bd = [] } = await supabase
         .rpc('get_criteria_breakdown', { _person_id: p.poi_id });
       setBreakdown(bd);
@@ -76,8 +75,8 @@ export default function ProfileDetail() {
     load();
   }, [slug, navigate]);
 
-  if (loading)    return <div className="spinner">Loading…</div>;
-  if (notFound)   return <p className="empty-state">Profile not found.</p>;
+  if (loading)  return <div className="spinner">Loading…</div>;
+  if (notFound) return <p className="empty-state">Profile not found.</p>;
 
   return (
     <div className="detail-container">

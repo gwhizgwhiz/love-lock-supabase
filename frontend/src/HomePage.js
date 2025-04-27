@@ -52,6 +52,9 @@ export default function HomePage() {
             </div>
             {open && (
               <div className="dropdown-menu">
+                <Link to="/profile/edit">
+                  <button className="btn-small">My Profile</button>
+                </Link>
                 <Link to="/settings" className="dropdown-item" onClick={() => setOpen(false)}>
                   Settings
                 </Link>

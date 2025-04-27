@@ -1,7 +1,8 @@
 // frontend/src/pages/ProfilesPage.js
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import supabase from '../supabaseClient'
+import { Link }                       from 'react-router-dom'
+import supabase                       from '../supabaseClient'
+import defaultAvatar                  from '../assets/default-avatar.png'
 import '../App.css'
 
 export default function ProfilesPage() {
@@ -13,27 +14,32 @@ export default function ProfilesPage() {
   useEffect(() => {
     async function loadProfiles() {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('public_profile_view_shared')
-        .select('poi_id,slug,main_alias,photo_reference_url,trust_score,known_region')
 
-      if (error) {
-        setError(error.message)
+      const { data, error: dbErr } = await supabase
+        .from('public_profile_view_shared')
+        .select('poi_id, slug, main_alias, photo_reference_url, trust_score, known_region')
+
+      if (dbErr) {
+        setError(dbErr.message)
         setLoading(false)
         return
       }
 
-      // For each record, turn the storage key into a real URL (or fallback)
+      // map storage keys → public URLs (or fallback to our imported placeholder)
       const enriched = await Promise.all(
         data.map(async (p) => {
-          let publicUrl = '/default-avatar.png'
+          let publicUrl = defaultAvatar
           if (p.photo_reference_url) {
-            const { data: urlData } = supabase
+            const { data: urlData, error: urlErr } = supabase
               .storage
-              .from('avatars')                     // your bucket name
+              .from('avatars')
               .getPublicUrl(p.photo_reference_url)
-            publicUrl = urlData.publicUrl || publicUrl
+
+            if (!urlErr && urlData?.publicUrl) {
+              publicUrl = urlData.publicUrl
+            }
           }
+
           return {
             ...p,
             avatar_url: publicUrl
@@ -44,10 +50,11 @@ export default function ProfilesPage() {
       setProfiles(enriched)
       setLoading(false)
     }
+
     loadProfiles()
   }, [])
 
-  // client‐side filtering...
+  // client-side filter
   const q = search.toLowerCase()
   const filtered = profiles.filter(p =>
     p.main_alias.toLowerCase().includes(q) ||
