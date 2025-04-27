@@ -14,7 +14,6 @@ export default function ProfilesPage() {
   useEffect(() => {
     async function loadProfiles() {
       setLoading(true)
-
       const { data, error: dbErr } = await supabase
         .from('public_profile_view_shared')
         .select('poi_id, slug, main_alias, photo_reference_url, trust_score, known_region')
@@ -25,7 +24,6 @@ export default function ProfilesPage() {
         return
       }
 
-      // map storage keys → public URLs (or fallback to our imported placeholder)
       const enriched = await Promise.all(
         data.map(async (p) => {
           let publicUrl = defaultAvatar
@@ -34,27 +32,18 @@ export default function ProfilesPage() {
               .storage
               .from('avatars')
               .getPublicUrl(p.photo_reference_url)
-
-            if (!urlErr && urlData?.publicUrl) {
-              publicUrl = urlData.publicUrl
-            }
+            if (!urlErr && urlData?.publicUrl) publicUrl = urlData.publicUrl
           }
-
-          return {
-            ...p,
-            avatar_url: publicUrl
-          }
+          return { ...p, avatar_url: publicUrl }
         })
       )
 
       setProfiles(enriched)
       setLoading(false)
     }
-
     loadProfiles()
   }, [])
 
-  // client-side filter
   const q = search.toLowerCase()
   const filtered = profiles.filter(p =>
     p.main_alias.toLowerCase().includes(q) ||
@@ -66,7 +55,7 @@ export default function ProfilesPage() {
   if (error)   return <p className="empty-state">{error}</p>
 
   return (
-    <div className="profiles-container">
+    <div className="container">
       <h2>Browse Profiles</h2>
       <div className="search-bar">
         <input
@@ -77,34 +66,35 @@ export default function ProfilesPage() {
         />
       </div>
 
-      {filtered.length === 0
-        ? <p className="empty-state">No profiles match your search.</p>
-        : <div className="profiles-grid">
-            {filtered.map(p => (
-              <Link
-                key={p.poi_id}
-                to={`/profiles/${p.slug}`}
-                className="profile-card"
-              >
-                <img
-                  src={p.avatar_url}
-                  alt={p.main_alias}
-                  className="profile-avatar"
-                />
-                <h3>{p.main_alias}</h3>
-                <div className="trust-score">
-                  {'❤️'.repeat(Math.max(0, Math.round(p.trust_score)))}
-                  <span className="score-number">
-                    {(p.trust_score||0).toFixed(1)}
-                  </span>
-                </div>
-                {p.known_region && (
-                  <small className="region">{p.known_region}</small>
-                )}
-              </Link>
-            ))}
-          </div>
-      }
+      {filtered.length === 0 ? (
+        <p className="empty-state">No profiles match your search.</p>
+      ) : (
+        <div className="profiles-grid">
+          {filtered.map(p => (
+            <Link
+              key={p.poi_id}
+              to={`/profiles/${p.slug}`}
+              className="profile-card"
+            >
+              <img
+                src={p.avatar_url}
+                alt={p.main_alias}
+                className="profile-avatar"
+              />
+              <h3>{p.main_alias}</h3>
+              <div className="trust-score">
+                {'❤️'.repeat(Math.max(0, Math.round(p.trust_score)))}
+                <span className="score-number">
+                  {(p.trust_score||0).toFixed(1)}
+                </span>
+              </div>
+              {p.known_region && (
+                <small className="region">{p.known_region}</small>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -6,20 +6,18 @@ import defaultAvatar                   from '../assets/default-avatar.png';
 import '../App.css';
 
 export default function ProfileDetail() {
-  const { slug }                       = useParams();
-  const navigate                       = useNavigate();
-  const [profile, setProfile]         = useState(null);
-  const [avatarUrl, setAvatarUrl]     = useState(defaultAvatar);
+  const { slug }                = useParams();
+  const navigate                = useNavigate();
+  const [profile, setProfile]   = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
   const [interactions, setInteractions] = useState([]);
-  const [breakdown, setBreakdown]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [notFound, setNotFound]       = useState(false);
+  const [breakdown, setBreakdown] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-
-      // 1) Fetch single row
       const { data: p, error: pErr } = await supabase
         .from('public_profile_view_shared')
         .select(`
@@ -43,19 +41,16 @@ export default function ProfileDetail() {
       }
       setProfile(p);
 
-      // 2) Turn storage key → public URL (or placeholder)
       if (p.photo_reference_url) {
         const { data: urlData, error: urlErr } = supabase
           .storage
           .from('avatars')
           .getPublicUrl(p.photo_reference_url);
-
         if (!urlErr && urlData?.publicUrl) {
           setAvatarUrl(urlData.publicUrl);
         }
       }
 
-      // 3) Recent interactions
       const { data: ints = [] } = await supabase
         .from('public_interactions_view')
         .select('id, interaction_type, occurred_at, outcome_rating')
@@ -64,14 +59,12 @@ export default function ProfileDetail() {
         .limit(10);
       setInteractions(ints);
 
-      // 4) Criteria breakdown
       const { data: bd = [] } = await supabase
         .rpc('get_criteria_breakdown', { _person_id: p.poi_id });
       setBreakdown(bd);
 
       setLoading(false);
     }
-
     load();
   }, [slug, navigate]);
 
@@ -79,7 +72,7 @@ export default function ProfileDetail() {
   if (notFound) return <p className="empty-state">Profile not found.</p>;
 
   return (
-    <div className="detail-container">
+    <div className="container">
       <section className="hero">
         <img
           src={avatarUrl}
@@ -117,14 +110,10 @@ export default function ProfileDetail() {
         <h2>Recent Interactions</h2>
         {interactions.length > 0 ? (
           <ul>
-            {interactions.map((i) => (
+            {interactions.map(i => (
               <li key={i.id} className={`item ${i.outcome_rating}`}>
-                <span className="type">
-                  {i.interaction_type.replace('_', ' ')}
-                </span>
-                <span className="time">
-                  {new Date(i.occurred_at).toLocaleString()}
-                </span>
+                <span className="type">{i.interaction_type.replace('_',' ')}</span>
+                <span className="time">{new Date(i.occurred_at).toLocaleString()}</span>
                 <span className="outcome">{i.outcome_rating}</span>
               </li>
             ))}

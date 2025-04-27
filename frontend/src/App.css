@@ -1,10 +1,10 @@
-/* App.css */
+/* --- App.css --- */
 
+/* 1. Font import & root variables */
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 
-/* :root and other rules */
 :root {
-  /* primary “Red” + companion tones */
+  /* brand colors */
   --brand-red:       #C42F33;
   --brand-red-dark:  #A32829;
   --text-primary:    #333;
@@ -14,396 +14,303 @@
   --border-light:    rgba(0, 0, 0, 0.05);
 }
 
-/* Inbox tweaks using vars */
-.inbox-container {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-  background-color: var(--bg-page);
-  min-height: 100vh;
-}
-
-.inbox-card {
-  background-color: var(--bg-card);
-  border-top: 4px solid var(--brand-red);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  max-width: 600px;
-  width: 100%;
-  padding: 1.5rem;
-}
-
-.inbox-card h1 {
-  margin: 0 0 1rem;
-  color: var(--brand-red);
-}
-
-.inbox-card p {
-  color: var(--text-secondary);
-}
-
-/* message list */
-.message-list {
-  list-style: none;
-  display: grid;
-  row-gap: 1rem;
-  margin: 1rem 0;
-  padding: 0;
-}
-
-.message-item {
-  background-color: #fff;
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
-  padding: 1rem;
-  transition: background-color 0.2s ease;
-}
-
-.message-item:hover {
-  background-color: #fcf2f2;
-}
-
-.message-item:nth-child(odd) {
-  background-color: #fcf2f2; /* very light red tint for stripes */
-}
-
-.message-item h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.1rem;
-  color: var(--text-primary);
-}
-
-.message-item p {
-  margin: 0;
-  color: var(--text-secondary);
-}
-
-/* Loading spinner */
-.spinner {
-  border: 4px solid var(--border-light);
-  border-top: 4px solid var(--brand-red);
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  animation: spin 1s linear infinite;
-  margin: 2rem auto;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  color: var(--text-secondary);
-  margin: 2rem 0;
-}
-
-/* reuse your .btn but override hover from vars */
-.btn {
-  background-color: var(--brand-red);
-}
-.btn:hover {
-  background-color: var(--brand-red-dark);
-}
-
+/* 2. Global resets & base */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-
 body {
   font-family: 'Arial', sans-serif;
-  background-color: #f4f4f9;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+a { text-decoration: none; color: inherit; }
+
+/* 3. Reusable containers */
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  background: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
-.home-page {
-  text-align: center;
-  padding: 20px;
-}
-
-.logo {
-  width: 200px; /* Adjust logo size */
-}
-
-h1 {
-  font-size: 2.5rem;
-  color: #333;
-}
-
-p {
-  font-size: 1.2rem;
-  color: #555;
-  margin-bottom: 20px;
-}
-
-.home-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.btn {
-  padding: 10px 20px;
+/* 4. Buttons */
+.btn, button {
+  padding: 0.75rem 1.5rem;
   font-size: 1rem;
-  color: white;
-  background-color: #C42F33;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.btn:hover {
-  background-color: white;
-  color: #C42F33;
-  border-color: #C42F33;
-}
-
-a {
-  text-decoration: none;
-}
-
-/* Container for the login page */
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  flex-direction: row;  /* Side by side: Image on left, form on right */
-}
-
-/* Style for the login image (left side) */
-.login-image {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.login-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Style for the login form (right side) */
-.login-form {
-  flex: 1;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  margin-left: 20px; /* Space between the image and form */
-}
-
-/* Form heading */
-.login-form h1 {
-  text-align: center;
-  font-size: 2rem;
-  color: #333;
-}
-
-/* Error message styling */
-.error-message {
-  color: red;
-  font-size: 0.9rem;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-/* Input fields and labels */
-.input-group {
-  margin-bottom: 15px;
-}
-
-.input-group label {
-  display: block;
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 5px;
-}
-
-.input-field {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-}
-
-.input-field:focus {
-  border-color: #C42F33;
-  outline: none;
-  background-color: #fff;
-}
-
-/* Button styling */
-.btn {
-  width: 100%;
-  padding: 10px;
-  font-size: 1.1rem;
-  background-color: #C42F33;  /* Button color */
+  background-color: var(--brand-red);
   color: white;
-  border: none;
-  border-radius: 5px;
   cursor: pointer;
-  margin-top: 10px;
+  transition: background-color 0.2s, color 0.2s;
+}
+.btn:hover, button:hover {
+  background-color: var(--brand-red-dark);
 }
 
-.btn:hover {
-  background-color: #A32829;
+/* small variant */
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
 }
 
-/* Sign up link */
-.signup-link {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.signup-link a {
-  color: #C42F33;
-  text-decoration: none;
-}
-
-.signup-link a:hover {
-  text-decoration: underline;
-}
-
-/* Only affects the Sign Up page */
-.login-container.signup-page {
-  display: flex;           
-  flex-direction: row;     
-  align-items: center;     
-  justify-content: center; 
-  gap: 2rem;               
-  min-height: 100vh;       
-  padding: 2rem;           
-}
-
-/* Ensure the image scales nicely */
-.signup-page .login-image {
-  flex: 0 1 400px;
+/* 5. Forms */
+.form, .settings-form {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
 }
-.signup-page .login-img {
-  max-width: 100%;
-  height: auto;
+.form label, .settings-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+}
+.form input[type="text"],
+.form input[type="email"],
+.form input[type="password"],
+.form input[type="file"],
+.settings-form input,
+.form textarea,
+.form select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+}
+
+/* 6. Spinners & empty states */
+.spinner {
   display: block;
+  margin: 2rem auto;
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-light);
+  border-top: 4px solid var(--brand-red);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem 0;
 }
 
-/* Let the form fill the rest of the space */
-.signup-page .login-form {
-  flex: 1 1 400px;
-  width: 100%;
-}
-
-/* Mobile fallback */
-@media (max-width: 768px) {
-  .login-container.signup-page {
-    flex-direction: column;
-  }
-  .signup-page .login-image {
-    margin-bottom: 2rem;
-  }
-}
-
-/* HomePage.css */
-
+/* 7. Homepage */
 .home-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  margin: 0;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: #ffffff;
+  background: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: sticky; top: 0; z-index: 10;
 }
-
 .header .logo {
   width: 75px;
 }
-
 .header .avatar {
-  width: 40px;
-  height: 40px;
+  width: 40px; height: 40px;
   border-radius: 50%;
-  background: #C42F33;
+  background: var(--brand-red);
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold; cursor: pointer;
 }
-
 .banner {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
   text-align: center;
   background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-  color: white;
-  padding: 4rem 2rem;
+  color: white; padding: 4rem 2rem;
+}
+.banner h1 {
+  font-size: 3rem; margin-bottom: 1rem;
+}
+.banner p {
+  font-size: 1.25rem; max-width: 600px; line-height: 1.5;
+}
+.home-buttons {
+  display: flex; gap: 1rem; margin-top: 2rem;
+}
+.home-buttons .btn {
+  background: white; color: var(--brand-red);
+}
+.home-buttons .btn:hover {
+  background: rgba(255,255,255,0.8); color: var(--brand-red-dark);
 }
 
-.banner h1 {
-  font-size: 3rem;
+/* 8. Login / Signup layout */
+.login-container, .login-container.signup-page {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: var(--bg-page);
+}
+.login-image, .signup-page .login-image {
+  flex: 0 1 400px;
+  display: flex; justify-content: center; align-items: center;
+}
+.login-img {
+  max-width: 100%; height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.login-form, .signup-page .login-form {
+  flex: 1 1 400px;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.input-group {
   margin-bottom: 1rem;
 }
-
-.banner p {
-  font-size: 1.25rem;
-  max-width: 600px;
-  line-height: 1.5;
+.input-group label {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+.input-field {
+  width: 100%; padding: 0.75rem;
+  border: 1px solid #ddd; border-radius: 5px;
+  background: #f9f9f9;
+}
+.input-field:focus {
+  outline: none; border-color: var(--brand-red);
+  background: white;
+}
+.signup-link {
+  text-align: center; margin-top: 1rem;
+}
+.signup-link a {
+  color: var(--brand-red);
+}
+.signup-link a:hover {
+  text-decoration: underline;
 }
 
-.home-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+/* 9. Inbox / Thread cards */
+.inbox-container {
+  display: flex; justify-content: center;
+  padding: 2rem; background: var(--bg-page);
+}
+.inbox-card {
+  background: white;
+  border-top: 4px solid var(--brand-red);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  max-width: 600px; width: 100%; padding: 1.5rem;
+}
+.inbox-card h1 { color: var(--brand-red); margin-bottom: 1rem; }
+.message-list {
+  list-style: none; padding: 0; display: grid; row-gap: 1rem;
+}
+.message-item {
+  background: white; border: 1px solid var(--border-light);
+  border-radius: 6px; padding: 1rem;
+  transition: background 0.2s;
+}
+.message-item:hover { background: #fcf2f2; }
+.message-item:nth-child(odd) { background: #fcf2f2; }
+.message-item h2 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+.message-item p { color: var(--text-secondary); }
+
+/* 10. Profiles list & cards */
+.profiles-container {
+  padding: 2rem 0;
+}
+.search-bar input {
+  width: 100%; padding: 0.75rem;
+  border: 1px solid #ddd; border-radius: 5px;
+}
+.profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.profile-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+.profile-card:hover { transform: translateY(-4px); }
+.profile-avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+}
+.trust-score { margin: 0.5rem 0; }
+.score-number { margin-left: 0.25rem; color: var(--text-secondary); }
+
+/* 11. Profile detail */
+.detail-container {
+  padding: 2rem 1rem;
+}
+.hero {
+  display: flex; align-items: center;
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  color: white; padding: 2rem; border-radius: 8px;
+  gap: 1.5rem;
+}
+.hero-avatar {
+  width: 120px; height: 120px; border-radius: 50%;
+  object-fit: cover;
+}
+.hero-info h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+.trust-badge { font-size: 1.25rem; margin: 0.5rem 0; }
+.hero-stats span { margin-right: 1rem; font-size: 0.9rem; }
+.chart-placeholder {
+  height: 200px; background: #fafafa;
+  border: 1px dashed #ccc;
+  display: flex; align-items: center;
+  justify-content: center; color: #999;
+  margin: 1.5rem 0;
+}
+.timeline ul {
+  list-style: none; padding: 0; margin: 0;
+}
+.timeline li {
+  display: flex; justify-content: space-between;
+  padding: 0.75rem 0; border-bottom: 1px solid #eee;
+}
+.timeline li:last-child { border-bottom: none; }
+.timeline li.positive { background: #e6ffed; }
+.timeline li.negative { background: #ffe6e6; }
+.timeline li.neutral  { background: #eef2ff; }
+
+/* 12. Profile Edit & Settings */
+.profile-edit-container,
+.settings-container {
+  padding: 2rem 1rem;
+}
+.avatar-preview {
+  width: 80px; height: 80px;
+  object-fit: cover; border-radius: 50%;
+  margin-top: 0.5rem;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: bold;
-  background: #ffffff;
-  color: #C42F33;
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.btn:hover {
-  background: rgba(255,255,255,0.8);
-  color: #a12a2e;
-}
-
-/* Dropdown container */
+/* --- Header Avatar Dropdown --- */
 .header .header-right {
   position: relative;
   display: flex;
@@ -411,20 +318,20 @@ a {
   gap: 1rem;
 }
 
-/* The actual dropdown menu */
+/* the floating menu */
 .dropdown-menu {
   position: absolute;
-  top: 60px; /* just below the header bar */
+  top: 60px;            /* just below the header bar */
   right: 0;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   border-radius: 0.25rem;
   overflow: hidden;
   z-index: 20;
-  min-width: 150px;
+  min-width: 160px;
 }
 
-/* Links and button inside dropdown */
+/* links inside the menu */
 .dropdown-item {
   display: block;
   width: 100%;
@@ -435,253 +342,23 @@ a {
   transition: background 0.2s;
   text-align: left;
 }
-
 .dropdown-item:hover {
   background: #f5f5f5;
 }
 
-/* Style for the logout button variant */
+/* logout button variant */
 .logout-item {
-  background: none;
-  border: none;
+  display: block;
   width: 100%;
   padding: 0.75rem 1rem;
+  background: none;
+  border: none;
   text-align: left;
   cursor: pointer;
-  color: #C42F33;
+  color: var(--brand-red);
+  font-size: 0.9rem;
+  transition: background 0.2s;
 }
-
 .logout-item:hover {
   background: #fdecea;
-}
-
-.page-container {
-  max-width: 480px;
-  margin: 2rem auto;
-  padding: 1rem;
-}
-
-.page-container h2 {
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.settings-form .input-group {
-  margin-bottom: 1rem;
-}
-
-.settings-form label {
-  display: block;
-  margin-bottom: 0.25rem;
-  font-weight: bold;
-}
-
-.settings-form input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 0.25rem;
-}
-
-.alert {
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border-radius: 0.25rem;
-}
-.alert.success {
-  background: #e6ffed;
-  color: #2f8132;
-}
-.alert.error {
-  background: #ffe6e6;
-  color: #813232;
-}
-.alert.info {
-  background: #eef2ff;
-  color: #313281;
-}
-
-/* Avatar group */
-.avatar-group img.avatar-preview {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 0.5rem;
-}
-
-/* File input reset */
-.avatar-group input[type="file"] {
-  display: block;
-}
-
-.profiles-container {
-  padding: 2rem;
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.profile-search-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.profile-search-form input {
-  flex: 1 1 150px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 0.375rem;
-}
-
-.profiles-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-}
-
-.profile-card {
-  text-decoration: none;
-  background: #fff;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-  color: inherit;
-}
-
-.profile-card:hover {
-  transform: translateY(-4px);
-}
-
-.profile-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 0.5rem;
-}
-
-.trust-score {
-  margin: 0.5rem 0;
-}
-
-.score-number {
-  margin-left: 0.25rem;
-  color: #555;
-  font-size: 0.9rem;
-}
-
-/*profiles detail css*/
-
-.detail-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.hero {
-  display: flex;
-  align-items: center;
-  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-  color: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-}
-
-.hero-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 1.5rem;
-}
-
-.hero-info h1 {
-  margin: 0;
-  font-size: 2rem;
-}
-
-.trust-badge {
-  margin: 0.5rem 0;
-  font-size: 1.25rem;
-}
-
-.hero-stats span {
-  display: inline-block;
-  margin-right: 1rem;
-  font-size: 0.9rem;
-}
-
-.breakdown,
-.timeline {
-  margin-top: 2rem;
-}
-
-.breakdown .chart-placeholder {
-  height: 200px;
-  background: #f5f5f5;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
-}
-
-.timeline ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.timeline li {
-  display: flex;
-  gap: 1rem;
-  padding: 0.75rem;
-  border-bottom: 1px solid #eee;
-  align-items: center;
-}
-
-.timeline li.positive {
-  background: #e6ffed;
-}
-
-.timeline li.negative {
-  background: #ffe6e6;
-}
-
-.timeline li.neutral {
-  background: #eef2ff;
-}
-
-.empty-state {
-  text-align: center;
-  color: #666;
-  padding: 2rem 0;
-}
-
-.profile-edit-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 1rem;
-}
-
-.profile-edit-container form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.profile-edit-container label {
-  display: flex;
-  flex-direction: column;
-}
-
-.avatar-preview {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 50%;
 }

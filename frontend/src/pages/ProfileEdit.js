@@ -18,18 +18,22 @@ export default function ProfileEdit() {
   const [photoKey, setPhotoKey]           = useState('');
   const [avatarUrl, setAvatarUrl]         = useState(defaultAvatar);
 
-  // 1) Load existing POI for this user (if any)
+  // Load existing profile if one exists
   useEffect(() => {
     async function load() {
       setLoading(true);
-      // a) get the logged-in user
-      const { data: { user }, error: authErr } = await supabase.auth.getUser();
+
+      // 1) Get current user
+      const {
+        data: { user },
+        error: authErr
+      } = await supabase.auth.getUser();
       if (authErr || !user) {
         navigate('/login');
         return;
       }
 
-      // b) fetch their POI row by created_by
+      // 2) Fetch their person_of_interest row by created_by
       const { data, error: fetchErr } = await supabase
         .from('person_of_interest')
         .select('*')
@@ -42,29 +46,31 @@ export default function ProfileEdit() {
         return;
       }
 
-      // c) populate state from existing row
+      // 3) Populate form state if data exists
       if (data) {
         setMainAlias(data.main_alias);
         setSlug(data.slug);
         setKnownRegion(data.known_region || '');
         setPlatformsText((data.platforms || []).join(', '));
-
         if (data.photo_reference_url) {
           setPhotoKey(data.photo_reference_url);
-          const { data: urlData } = supabase
+          const {
+            data: { publicUrl }
+          } = supabase
             .storage
             .from('avatars')
             .getPublicUrl(data.photo_reference_url);
-          setAvatarUrl(urlData.publicUrl || defaultAvatar);
+          setAvatarUrl(publicUrl || defaultAvatar);
         }
       }
 
       setLoading(false);
     }
+
     load();
   }, [navigate]);
 
-  // 2) Helpers
+  // Slug helper
   const slugify = (text) =>
     text
       .toString()
@@ -78,11 +84,11 @@ export default function ProfileEdit() {
     setSlug(slugify(v));
   };
 
+  // Avatar file upload
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // choose a unique key
     const key = `avatars/${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase
       .storage
@@ -93,42 +99,47 @@ export default function ProfileEdit() {
       return;
     }
 
-    const { data: urlData } = supabase
+    const {
+      data: { publicUrl }
+    } = supabase
       .storage
       .from('avatars')
       .getPublicUrl(key);
 
     setPhotoKey(key);
-    setAvatarUrl(urlData.publicUrl);
+    setAvatarUrl(publicUrl);
   };
 
-  // 3) Save handler
+  // Save (insert or update)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
 
-    // a) re-grab the user so we can reference user.id synchronously
-    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    // a) re-fetch user to get ID
+    const {
+      data: { user },
+      error: authErr
+    } = await supabase.auth.getUser();
     if (authErr || !user) {
-      setError(authErr?.message || 'Not authenticated');
+      setError(authErr?.message || 'Authentication required');
       setSaving(false);
       return;
     }
 
-    // b) upsert on created_by
+    // b) Upsert on created_by
     const { error: upErr } = await supabase
       .from('person_of_interest')
       .upsert(
         {
-          created_by:          user.id,
-          main_alias:          mainAlias,
+          created_by: user.id,
+          main_alias: mainAlias,
           slug,
-          known_region:        knownRegion,
-          platforms:           platformsText
-                                .split(',')
-                                .map((s) => s.trim())
-                                .filter(Boolean),
+          known_region: knownRegion,
+          platforms: platformsText
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean),
           photo_reference_url: photoKey
         },
         { onConflict: 'created_by' }
@@ -140,17 +151,18 @@ export default function ProfileEdit() {
       return;
     }
 
-    // success!
+    // c) Navigate to the detail page
     navigate(`/profiles/${slug}`);
   };
 
-  if (loading) return <p>Loading…</p>;
+  if (loading) return <div className="spinner">Loading…</div>;
 
   return (
-    <div className="profile-edit-container">
+    <div className="container profile-edit-container">
       <h2>{slug ? 'Edit' : 'Create'} Profile</h2>
       {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSubmit}>
+
+      <form className="form" onSubmit={handleSubmit}>
         <label>
           Display Name
           <input
@@ -190,7 +202,7 @@ export default function ProfileEdit() {
         </label>
         <img src={avatarUrl} alt="" className="avatar-preview" />
 
-        <button type="submit" disabled={saving}>
+        <button type="submit" className="btn" disabled={saving}>
           {saving ? 'Saving…' : 'Save Profile'}
         </button>
       </form>
