@@ -1,39 +1,62 @@
 // frontend/src/pages/ProfileDetail.js
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import supabase from '../supabaseClient';
+import { useParams, useNavigate }             from 'react-router-dom';
+import supabase                              from '../supabaseClient';
 import '../App.css';
 
 export default function ProfileDetail() {
   const { slug }     = useParams();
   const navigate     = useNavigate();
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile]           = useState(null);
+  const [avatarUrl, setAvatarUrl]       = useState('/default-avatar.png');
   const [interactions, setInteractions] = useState([]);
   const [breakdown, setBreakdown]       = useState([]);
   const [loading, setLoading]           = useState(true);
+  const [notFound, setNotFound]         = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
 
-      // 1) Fetch single row
+      // 1) Fetch single row, including photo_reference_url
       const { data: p, error: pErr } = await supabase
         .from('public_profile_view_shared')
         .select(`
-          poi_id, slug, main_alias, avatar_url,
-          trust_score, total_interactions,
-          positive_pct, last_interaction
+          poi_id,
+          slug,
+          main_alias,
+          known_region,
+          photo_reference_url,
+          trust_score,
+          total_interactions,
+          positive_pct,
+          last_interaction
         `)
         .eq('slug', slug)
         .single();
 
       if (pErr || !p) {
-        navigate('/profiles');
+        setNotFound(true);
+        setLoading(false);
         return;
       }
       setProfile(p);
 
-      // 2) Timeline
+      // 2) Resolve the storage key into a public URL
+      if (p.photo_reference_url) {
+        const {
+          data: { publicUrl },
+          error: urlErr
+        } = supabase
+          .storage
+          .from('avatars')   // ← your bucket name
+          .getPublicUrl(p.photo_reference_url);
+        if (!urlErr && publicUrl) {
+          setAvatarUrl(publicUrl);
+        }
+      }
+
+      // 3) Timeline
       const { data: ints = [] } = await supabase
         .from('public_interactions_view')
         .select('id, interaction_type, occurred_at, outcome_rating')
@@ -42,23 +65,25 @@ export default function ProfileDetail() {
         .limit(10);
       setInteractions(ints);
 
-      // 3) Breakdown
+      // 4) Breakdown
       const { data: bd = [] } = await supabase
         .rpc('get_criteria_breakdown', { _person_id: p.poi_id });
       setBreakdown(bd);
 
       setLoading(false);
     }
+
     load();
   }, [slug, navigate]);
 
-  if (loading) return <div className="spinner">Loading…</div>;
+  if (loading)    return <div className="spinner">Loading…</div>;
+  if (notFound)   return <p className="empty-state">Profile not found.</p>;
 
   return (
     <div className="detail-container">
       <section className="hero">
         <img
-          src={profile.avatar_url || '/default-avatar.png'}
+          src={avatarUrl}
           alt={profile.main_alias}
           className="hero-avatar"
         />
@@ -74,8 +99,7 @@ export default function ProfileDetail() {
             <span>{profile.total_interactions} interactions</span>
             <span>{Math.round(profile.positive_pct)}% positive</span>
             <span>
-              Last:{' '}
-              {new Date(profile.last_interaction).toLocaleDateString()}
+              Last: {new Date(profile.last_interaction).toLocaleDateString()}
             </span>
           </div>
         </div>
@@ -94,7 +118,7 @@ export default function ProfileDetail() {
         <h2>Recent Interactions</h2>
         {interactions.length > 0 ? (
           <ul>
-            {interactions.map(i => (
+            {interactions.map((i) => (
               <li key={i.id} className={`item ${i.outcome_rating}`}>
                 <span className="type">
                   {i.interaction_type.replace('_', ' ')}
