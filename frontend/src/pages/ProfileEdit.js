@@ -1,8 +1,8 @@
 // frontend/src/pages/ProfileEdit.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate }                     from 'react-router-dom';
-import supabase                            from '../supabaseClient';
-import defaultAvatar                       from '../assets/default-avatar.png';
+import { useNavigate }                 from 'react-router-dom';
+import supabase                        from '../supabaseClient';
+import defaultAvatar                   from '../assets/default-avatar.png';
 import '../App.css';
 
 export default function ProfileEdit() {
@@ -22,31 +22,33 @@ export default function ProfileEdit() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // a) get the logged-in user
+      const { data: { user }, error: authErr } = await supabase.auth.getUser();
+      if (authErr || !user) {
         navigate('/login');
         return;
       }
 
-      // fetch their POI row
-      let { data, error } = await supabase
+      // b) fetch their POI row by created_by
+      const { data, error: fetchErr } = await supabase
         .from('person_of_interest')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('created_by', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        // some real error
-        setError(error.message);
+      if (fetchErr && fetchErr.code !== 'PGRST116') {
+        setError(fetchErr.message);
         setLoading(false);
         return;
       }
 
+      // c) populate state from existing row
       if (data) {
         setMainAlias(data.main_alias);
         setSlug(data.slug);
         setKnownRegion(data.known_region || '');
         setPlatformsText((data.platforms || []).join(', '));
+
         if (data.photo_reference_url) {
           setPhotoKey(data.photo_reference_url);
           const { data: urlData } = supabase
@@ -56,6 +58,7 @@ export default function ProfileEdit() {
           setAvatarUrl(urlData.publicUrl || defaultAvatar);
         }
       }
+
       setLoading(false);
     }
     load();
@@ -105,18 +108,30 @@ export default function ProfileEdit() {
     setSaving(true);
     setError(null);
 
-    const { data, error: upErr } = await supabase
+    // a) re-grab the user so we can reference user.id synchronously
+    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !user) {
+      setError(authErr?.message || 'Not authenticated');
+      setSaving(false);
+      return;
+    }
+
+    // b) upsert on created_by
+    const { error: upErr } = await supabase
       .from('person_of_interest')
       .upsert(
         {
-          user_id:           supabase.auth.getUser().then(r => r.data.user.id),
-          main_alias:        mainAlias,
+          created_by:          user.id,
+          main_alias:          mainAlias,
           slug,
-          known_region:      knownRegion,
-          platforms:         platformsText.split(',').map(s => s.trim()).filter(Boolean),
+          known_region:        knownRegion,
+          platforms:           platformsText
+                                .split(',')
+                                .map((s) => s.trim())
+                                .filter(Boolean),
           photo_reference_url: photoKey
         },
-        { onConflict: 'user_id' }
+        { onConflict: 'created_by' }
       );
 
     if (upErr) {
@@ -156,7 +171,7 @@ export default function ProfileEdit() {
           <input
             type="text"
             value={knownRegion}
-            onChange={e => setKnownRegion(e.target.value)}
+            onChange={(e) => setKnownRegion(e.target.value)}
           />
         </label>
 
@@ -165,7 +180,7 @@ export default function ProfileEdit() {
           <input
             type="text"
             value={platformsText}
-            onChange={e => setPlatformsText(e.target.value)}
+            onChange={(e) => setPlatformsText(e.target.value)}
           />
         </label>
 
