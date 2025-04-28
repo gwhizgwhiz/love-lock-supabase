@@ -1,93 +1,11 @@
-// frontend/src/HomePage.js
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate }                from 'react-router-dom';
-import supabase                             from './supabaseClient';
-import logo                                 from './assets/logo.png';
-import './App.css';  // <-- make sure to import the CSS file
+// src/HomePage.js
+import React from 'react';
+import { Link } from 'react-router-dom';
+import './App.css';  // keep your existing styles
 
 export default function HomePage() {
-  const [user, setUser] = useState(null);
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const dropdownRef = useRef();
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) setUser(data.user);
-    });
-  }, []);
-
-  // close dropdown on outside click
-  useEffect(() => {
-    function onClick(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, []);
-
-  const initials = user?.email
-    ? user.email.charAt(0).toUpperCase()
-    : '?';
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
-
   return (
     <div className="home-container">
-      <header className="header">
-        <Link to="/">
-          <img src={logo} alt="App Logo" className="logo" />
-        </Link>
-
-        {user && (
-          <div className="header-right" ref={dropdownRef}>
-            <div
-              className="avatar"
-              onClick={() => setOpen(o => !o)}
-              title={user.email}
-            >
-              {initials}
-            </div>
-            {open && (
-              <div className="dropdown-menu">
-                <Link
-                  to="/profile/edit"
-                  className="dropdown-item"
-                  onClick={() => setOpen(false)}
-                >
-                  My Profile
-                </Link>
-                <Link
-                  to="/settings"
-                  className="dropdown-item"
-                  onClick={() => setOpen(false)}
-                >
-                  Settings
-                </Link>
-                <Link
-                  to="/preferences"
-                  className="dropdown-item"
-                  onClick={() => setOpen(false)}
-                >
-                  Preferences
-                </Link>
-                <button
-                  className="logout-item"
-                  onClick={handleLogout}
-                >
-                  Log Out
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </header>
-
       <section className="banner">
         <h1>Your Heart, Your Lock, Your Trust</h1>
         <p>
