@@ -3,30 +3,46 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import logo from '../assets/logo.png';
-import '../App.css';  // your existing CSS for .header, .dropdown-menu, .btn, etc.
+import '../App.css';  // brings in your .header, .avatar, .dropdown-menu, .btn, etc.
 
 export default function Header() {
   const [user, setUser] = useState(null);
+  const [slug, setSlug] = useState(null);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef();
 
-  // load user
+  // 1) Load the authenticated user and their profile slug
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) setUser(data.user);
-    });
+    async function loadUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        // fetch the slug from your profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('slug')
+          .eq('user_id', user.id)
+          .single();
+        if (profileData?.slug) {
+          setSlug(profileData.slug);
+        }
+      }
+    }
+    loadUser();
   }, []);
 
-  // close dropdown on outside click
+  // 2) Close dropdown when clicking outside
   useEffect(() => {
-    function onClick(e) {
+    function handleOutsideClick(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
     }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
   const initials = user?.email?.[0].toUpperCase() || '?';
@@ -44,7 +60,6 @@ export default function Header() {
 
       {user && (
         <div className="header-right" ref={dropdownRef}>
-          
           {/* View Profiles button */}
           <Link to="/profiles">
             <button className="btn" style={{ marginRight: '1rem' }}>
@@ -67,17 +82,17 @@ export default function Header() {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              userSelect: 'none'
+              userSelect: 'none',
             }}
           >
             {initials}
           </div>
 
-          {/* Dropdown */}
+          {/* Dropdown menu */}
           {open && (
             <div className="dropdown-menu">
               <Link
-                to="/profile/edit"
+                to={slug ? `/profiles/${slug}` : '/profile/edit'}
                 className="dropdown-item"
                 onClick={() => setOpen(false)}
               >
