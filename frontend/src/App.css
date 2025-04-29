@@ -1,10 +1,9 @@
 /* --- App.css --- */
 
-/* 1. Font import & root variables */
+/* 1. Font Import & Root Variables */
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 
 :root {
-  /* brand colors */
   --brand-red:       #C42F33;
   --brand-red-dark:  #A32829;
   --text-primary:    #333;
@@ -14,7 +13,7 @@
   --border-light:    rgba(0, 0, 0, 0.05);
 }
 
-/* 2. Global resets & base */
+/* 2. Global Reset & Base */
 * {
   margin: 0;
   padding: 0;
@@ -27,9 +26,12 @@ body {
   min-height: 100vh;
   line-height: 1.5;
 }
-a { text-decoration: none; color: inherit; }
+a {
+  text-decoration: none;
+  color: inherit;
+}
 
-/* 3. Reusable containers */
+/* 3. Reusable Container */
 .container {
   max-width: 800px;
   margin: 2rem auto;
@@ -40,7 +42,8 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* 4. Buttons */
-.btn, button {
+.btn,
+button {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   border: none;
@@ -50,42 +53,59 @@ a { text-decoration: none; color: inherit; }
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
 }
-.btn:hover, button:hover {
+.btn:hover,
+button:hover {
   background-color: var(--brand-red-dark);
 }
-
-/* small variant */
 .btn-small {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
 }
 
-/* 5. Forms */
-.form, .settings-form {
+/* 5. Forms & Inputs */
+.form,
+.settings-form,
+.profile-edit-container form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-.form label, .settings-form label {
+.form label,
+.settings-form label {
   display: flex;
   flex-direction: column;
   font-weight: 500;
 }
-.form input[type="text"],
-.form input[type="email"],
-.form input[type="password"],
-.form input[type="file"],
-.settings-form input,
-.form textarea,
-.form select {
+input,
+textarea,
+select {
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
   background: white;
 }
+.input-field {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #f9f9f9;
+}
+.input-field:focus {
+  outline: none;
+  border-color: var(--brand-red);
+  background: white;
+}
+.input-group {
+  margin-bottom: 1rem;
+}
+.input-group label {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
 
-/* 6. Spinners & empty states */
+/* 6. Spinners & Empty States */
 .spinner {
   display: block;
   margin: 2rem auto;
@@ -103,12 +123,7 @@ a { text-decoration: none; color: inherit; }
   padding: 2rem 0;
 }
 
-/* 7. Homepage */
-.home-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
+/* 7. Header & Home */
 .header {
   display: flex;
   justify-content: space-between;
@@ -116,114 +131,190 @@ a { text-decoration: none; color: inherit; }
   padding: 1rem 2rem;
   background: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  position: sticky; top: 0; z-index: 10;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
-.header .logo {
-  width: 75px;
-}
+.header .logo { width: 75px; }
 .header .avatar {
   width: 40px; height: 40px;
   border-radius: 50%;
   background: var(--brand-red);
   color: white;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: bold; cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 .banner {
   flex: 1;
-  display: flex; flex-direction: column;
-  justify-content: center; align-items: center;
-  text-align: center;
-  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-  color: white; padding: 4rem 2rem;
-}
-.banner h1 {
-  font-size: 3rem; margin-bottom: 1rem;
-}
-.banner p {
-  font-size: 1.25rem; max-width: 600px; line-height: 1.5;
-}
-.home-buttons {
-  display: flex; gap: 1rem; margin-top: 2rem;
-}
-.home-buttons .btn {
-  background: white; color: var(--brand-red);
-}
-.home-buttons .btn:hover {
-  background: rgba(255,255,255,0.8); color: var(--brand-red-dark);
-}
-
-/* 8. Login / Signup layout */
-.login-container, .login-container.signup-page {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 2rem;
-  background: var(--bg-page);
+  text-align: center;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+  color: white;
+  padding: 4rem 2rem;
 }
-.login-image, .signup-page .login-image {
-  flex: 0 1 400px;
-  display: flex; justify-content: center; align-items: center;
-}
-.login-img {
-  max-width: 100%; height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.login-form, .signup-page .login-form {
-  flex: 1 1 400px;
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.input-group {
+.banner h1 {
+  font-size: 3rem;
   margin-bottom: 1rem;
 }
-.input-group label {
-  margin-bottom: 0.5rem;
-  color: var(--text-secondary);
+.banner p {
+  font-size: 1.25rem;
+  max-width: 600px;
+  line-height: 1.5;
 }
-.input-field {
-  width: 100%; padding: 0.75rem;
-  border: 1px solid #ddd; border-radius: 5px;
-  background: #f9f9f9;
+.home-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
 }
-.input-field:focus {
-  outline: none; border-color: var(--brand-red);
+.home-buttons .btn {
   background: white;
-}
-.signup-link {
-  text-align: center; margin-top: 1rem;
-}
-.signup-link a {
   color: var(--brand-red);
 }
-.signup-link a:hover {
-  text-decoration: underline;
+.home-buttons .btn:hover {
+  background: rgba(255,255,255,0.8);
+  color: var(--brand-red-dark);
 }
 
-/* 9. Inbox / Thread cards */
+/* 8. Login / Signup Layout (even halves + unified padding) */
+.login-container,
+.login-container.signup-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;            /* two equal columns */
+  grid-template-rows: 1fr;                   /* one full-height row */
+  gap: 2rem;                                 /* space between cards */
+  padding: 2rem;                             /* outer padding */
+  height: calc(100vh - 64px);                /* full viewport minus header */
+  background: var(--bg-page);
+}
+
+@media (max-width: 768px) {
+  .login-container,
+  .login-container.signup-page {
+    display: block;
+    padding: 1rem;
+    height: auto;
+    gap: 1rem;
+  }
+}
+
+/* IMAGE CARD */
+.login-image,
+.signup-page .login-image {
+  padding: 2rem;                             /* match form padding */
+  background: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.login-image .login-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* FORM CARD */
+.login-form,
+.signup-page .login-form {
+  display: flex;
+  flex-direction: column;                    /* stack heading + fields */
+  justify-content: center;                   /* vertical center */
+  align-items: stretch;
+  padding: 2rem;                             /* same as image */
+  background: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* constrain inner form width */
+.login-form > *,
+.signup-page .login-form > * {
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* LEFT-ALIGN THE HEADINGS */
+.login-form h1,
+.signup-page .login-form h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: left;                          /* was centered before */
+  color: var(--text-primary);
+}
+
+/* SPACING BETWEEN FIELDS */
+.login-form .input-group,
+.signup-page .login-form .input-group {
+  margin-bottom: 1rem;
+}
+
+/* RED LINKS + LEFT-ALIGN “already have an account” */
+.login-form .signup-link,
+.signup-page .login-form .signup-link {
+  margin-top: 1.5rem;
+  text-align: left;
+}
+.login-form .signup-link a,
+.signup-page .login-form .signup-link a {
+  color: var(--brand-red);
+}
+
+/* 9. Outlined Buttons (Login/Signup) */
+.login-form .btn,
+.signup-page .login-form .btn {
+  background: transparent !important;
+  border: 2px solid var(--brand-red) !important;
+  color: var(--brand-red) !important;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s, color 0.2s;
+}
+.login-form .btn:hover,
+.signup-page .login-form .btn:hover {
+  background-color: var(--brand-red) !important;
+  color: #fff !important;
+}
+
+/* 10. Inbox & Thread */
 .inbox-container {
-  display: flex; justify-content: center;
-  padding: 2rem; background: var(--bg-page);
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--bg-page);
 }
 .inbox-card {
   background: white;
   border-top: 4px solid var(--brand-red);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  max-width: 600px; width: 100%; padding: 1.5rem;
+  max-width: 600px;
+  width: 100%;
+  padding: 1.5rem;
 }
 .inbox-card h1 { color: var(--brand-red); margin-bottom: 1rem; }
 .message-list {
-  list-style: none; padding: 0; display: grid; row-gap: 1rem;
+  list-style: none;
+  padding: 0;
+  display: grid;
+  row-gap: 1rem;
 }
 .message-item {
-  background: white; border: 1px solid var(--border-light);
-  border-radius: 6px; padding: 1rem;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1rem;
   transition: background 0.2s;
 }
 .message-item:hover { background: #fcf2f2; }
@@ -231,17 +322,12 @@ a { text-decoration: none; color: inherit; }
 .message-item h2 { margin-bottom: 0.5rem; font-size: 1.1rem; }
 .message-item p { color: var(--text-secondary); }
 
-/* 10. Profiles list & cards */
-.profiles-container {
-  padding: 2rem 0;
-}
-.search-bar input {
-  width: 100%; padding: 0.75rem;
-  border: 1px solid #ddd; border-radius: 5px;
-}
+/* 11. Profiles Grid & Cards */
+.profiles-container { padding: 2rem 0; }
+.search-bar input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; }
 .profiles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
   gap: 1.5rem;
   margin-top: 1.5rem;
 }
@@ -255,7 +341,8 @@ a { text-decoration: none; color: inherit; }
 }
 .profile-card:hover { transform: translateY(-4px); }
 .profile-avatar {
-  width: 80px; height: 80px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 0.5rem;
@@ -263,90 +350,87 @@ a { text-decoration: none; color: inherit; }
 .trust-score { margin: 0.5rem 0; }
 .score-number { margin-left: 0.25rem; color: var(--text-secondary); }
 
-/* 11. Profile detail */
-.detail-container {
-  padding: 2rem 1rem;
-}
+/* 12. Profile Detail */
+.detail-container { padding: 2rem 1rem; }
 .hero {
-  display: flex; align-items: center;
-  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-  color: white; padding: 2rem; border-radius: 8px;
+  display: flex;
+  align-items: center;
+  background-color: hsl(0,100%,96%);
+  color: #333;
+  padding: 2rem;
+  border-radius: 8px;
   gap: 1.5rem;
 }
 .hero-avatar {
-  width: 120px; height: 120px; border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
   object-fit: cover;
 }
 .hero-info h1 { font-size: 2rem; margin-bottom: 0.5rem; }
 .trust-badge { font-size: 1.25rem; margin: 0.5rem 0; }
 .hero-stats span { margin-right: 1rem; font-size: 0.9rem; }
 .chart-placeholder {
-  height: 200px; background: #fafafa;
+  height: 200px;
+  background: #fafafa;
   border: 1px dashed #ccc;
-  display: flex; align-items: center;
-  justify-content: center; color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
   margin: 1.5rem 0;
 }
-.timeline ul {
-  list-style: none; padding: 0; margin: 0;
-}
+.timeline ul { list-style: none; padding: 0; margin: 0; }
 .timeline li {
-  display: flex; justify-content: space-between;
-  padding: 0.75rem 0; border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
 }
 .timeline li:last-child { border-bottom: none; }
 .timeline li.positive { background: #e6ffed; }
 .timeline li.negative { background: #ffe6e6; }
 .timeline li.neutral  { background: #eef2ff; }
 
-/* 12. Profile Edit & Settings */
+/* 13. Profile Edit & Settings */
 .profile-edit-container,
-.settings-container {
-  padding: 2rem 1rem;
-}
+.settings-container { padding: 2rem 1rem; }
 .avatar-preview {
-  width: 80px; height: 80px;
-  object-fit: cover; border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
   margin-top: 0.5rem;
 }
 
-/* --- Header Avatar Dropdown --- */
+/* Header Avatar Dropdown */
 .header .header-right {
   position: relative;
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-
-/* the floating menu */
 .dropdown-menu {
   position: absolute;
-  top: 60px;            /* just below the header bar */
+  top: 60px;
   right: 0;
-  background: #ffffff;
+  background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   border-radius: 0.25rem;
   overflow: hidden;
   z-index: 20;
   min-width: 160px;
 }
-
-/* links inside the menu */
 .dropdown-item {
   display: block;
   width: 100%;
   padding: 0.75rem 1rem;
   color: #333;
-  text-decoration: none;
   font-size: 0.9rem;
-  transition: background 0.2s;
   text-align: left;
+  transition: background 0.2s;
 }
-.dropdown-item:hover {
-  background: #f5f5f5;
-}
-
-/* logout button variant */
+.dropdown-item:hover { background: #f5f5f5; }
 .logout-item {
   display: block;
   width: 100%;
@@ -359,20 +443,4 @@ a { text-decoration: none; color: inherit; }
   font-size: 0.9rem;
   transition: background 0.2s;
 }
-.logout-item:hover {
-  background: #fdecea;
-}
-
-.hero {
-  background-color: hsl(0, 100%, 96%);  /* very light red */
-  color: #333;                          /* dark text for readability */
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-}
-
-.hero-info h1,
-.hero-info .trust-badge,
-.hero-info .hero-stats {
-  color: inherit;  /* ensure dark text */
-}
+.logout-item:hover { background: #fdecea; }

@@ -3,43 +3,45 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate }               from 'react-router-dom';
 import supabase                             from '../supabaseClient';
 import logo                                 from '../assets/logo.png';
-import '../App.css';
+import '../App.css';  // your .header, .btn, .avatar, .dropdown-menu, etc.
 
 export default function Header() {
-  const [user, setUser] = useState(null);
-  const [slug, setSlug] = useState(null);
-  const [open, setOpen] = useState(false);
-  const navigate        = useNavigate();
-  const dropdownRef     = useRef();
+  const [user, setUser]     = useState(null);
+  const [slug, setSlug]     = useState(null);
+  const [open, setOpen]     = useState(false);
+  const navigate            = useNavigate();
+  const dropdownRef         = useRef();
 
-  // load auth’d user and then their slug from person_of_interest
   useEffect(() => {
-    async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return setUser(null);
+    // 1) Get initial session user
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
 
-      setUser(user);
-
-      // this is the key change ↓
-      const { data: poi, error } = await supabase
-        .from('person_of_interest')
-        .select('slug')
-        .eq('created_by', user.id)
-        .single();
-
-      if (error) {
-        console.warn('Could not load slug:', error.message);
-      } else {
-        setSlug(poi.slug);
-      }
-    }
-
-    load();
+    // 2) Listen for login/logout
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => setUser(session?.user || null)
+    );
+    return () => subscription.unsubscribe();
   }, []);
 
-  // close dropdown on outside click
+  // Whenever user changes, grab their slug if they’re signed in
+  useEffect(() => {
+    if (!user) {
+      setSlug(null);
+      return;
+    }
+    supabase
+      .from('person_of_interest')
+      .select('slug')
+      .eq('created_by', user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (data?.slug) setSlug(data.slug);
+      });
+  }, [user]);
+
+  // Close dropdown on outside click
   useEffect(() => {
     function onClick(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -64,6 +66,21 @@ export default function Header() {
         <img src={logo} alt="App Logo" className="logo" />
       </Link>
 
+      {/* If no user → show Log In / Sign Up */}
+      {!user && (
+        <div className="header-right">
+          <Link to="/login">
+            <button className="btn">Log In</button>
+          </Link>
+          <Link to="/signup">
+            <button className="btn" style={{ marginLeft: '1rem' }}>
+              Sign Up
+            </button>
+          </Link>
+        </div>
+      )}
+
+      {/* If user → show View Profiles + avatar/dropdown */}
       {user && (
         <div className="header-right" ref={dropdownRef}>
           <Link to="/profiles">
@@ -77,7 +94,8 @@ export default function Header() {
             onClick={() => setOpen(o => !o)}
             title={user.email}
             style={{
-              width: '40px', height: '40px',
+              width: '40px',
+              height: '40px',
               borderRadius: '50%',
               backgroundColor: '#C42F33',
               color: 'white',
