@@ -362,3 +362,17 @@ a { text-decoration: none; color: inherit; }
 .logout-item:hover {
   background: #fdecea;
 }
+
+.hero {
+  background-color: hsl(0, 100%, 96%);  /* very light red */
+  color: #333;                          /* dark text for readability */
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+}
+
+.hero-info h1,
+.hero-info .trust-badge,
+.hero-info .hero-stats {
+  color: inherit;  /* ensure dark text */
+}

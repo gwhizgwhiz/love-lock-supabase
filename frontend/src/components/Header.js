@@ -1,51 +1,57 @@
 // src/components/Header.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import supabase from '../supabaseClient';
-import logo from '../assets/logo.png';
-import '../App.css';  // brings in your .header, .avatar, .dropdown-menu, .btn, etc.
+import { Link, useNavigate }               from 'react-router-dom';
+import supabase                             from '../supabaseClient';
+import logo                                 from '../assets/logo.png';
+import '../App.css';
 
 export default function Header() {
   const [user, setUser] = useState(null);
   const [slug, setSlug] = useState(null);
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const dropdownRef = useRef();
+  const navigate        = useNavigate();
+  const dropdownRef     = useRef();
 
-  // 1) Load the authenticated user and their profile slug
+  // load auth’d user and then their slug from person_of_interest
   useEffect(() => {
-    async function loadUser() {
+    async function load() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        // fetch the slug from your profiles table
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('slug')
-          .eq('user_id', user.id)
-          .single();
-        if (profileData?.slug) {
-          setSlug(profileData.slug);
-        }
+      if (!user) return setUser(null);
+
+      setUser(user);
+
+      // this is the key change ↓
+      const { data: poi, error } = await supabase
+        .from('person_of_interest')
+        .select('slug')
+        .eq('created_by', user.id)
+        .single();
+
+      if (error) {
+        console.warn('Could not load slug:', error.message);
+      } else {
+        setSlug(poi.slug);
       }
     }
-    loadUser();
+
+    load();
   }, []);
 
-  // 2) Close dropdown when clicking outside
+  // close dropdown on outside click
   useEffect(() => {
-    function handleOutsideClick(e) {
+    function onClick(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  const initials = user?.email?.[0].toUpperCase() || '?';
+  const initials    = user?.email?.[0].toUpperCase() || '?';
+  const profileLink = slug ? `/profiles/${slug}` : '/profile/edit';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -60,21 +66,18 @@ export default function Header() {
 
       {user && (
         <div className="header-right" ref={dropdownRef}>
-          {/* View Profiles button */}
           <Link to="/profiles">
             <button className="btn" style={{ marginRight: '1rem' }}>
               View Profiles
             </button>
           </Link>
 
-          {/* Avatar */}
           <div
             className="avatar"
             onClick={() => setOpen(o => !o)}
             title={user.email}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '40px', height: '40px',
               borderRadius: '50%',
               backgroundColor: '#C42F33',
               color: 'white',
@@ -82,17 +85,16 @@ export default function Header() {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              userSelect: 'none',
+              userSelect: 'none'
             }}
           >
             {initials}
           </div>
 
-          {/* Dropdown menu */}
           {open && (
             <div className="dropdown-menu">
               <Link
-                to={slug ? `/profiles/${slug}` : '/profile/edit'}
+                to={profileLink}
                 className="dropdown-item"
                 onClick={() => setOpen(false)}
               >
