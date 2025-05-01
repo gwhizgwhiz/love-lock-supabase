@@ -11,11 +11,13 @@ import ProfileCreate        from './pages/ProfileCreate';
 import ProfileEdit          from './pages/ProfileEdit';
 import ProfilesPage         from './pages/ProfilesPage';
 import ProfileDetail        from './pages/ProfileDetail';
-import Thread               from './pages/Thread';
 import Inbox                from './pages/Inbox';
+import Thread               from './pages/Thread';
 import AddExperience        from './components/AddExperience';
 import Settings             from './pages/Settings';
 import Preferences          from './pages/Preferences';
+import ResetRequest         from './pages/ResetRequest';
+import ResetPassword        from './pages/ResetPassword';
 
 import RequireAuth          from './components/RequireAuth';
 import RequireAdmin         from './components/RequireAdmin';
@@ -42,9 +44,13 @@ export default function App() {
             <Route path="/profile/edit"   element={<ProfileEdit />} />
 
             {/* Core features */}
-            <Route path="/threads"        element={<Thread />} />
-            <Route path="/threads/:threadId" element={<Thread />} />
-            <Route path="/inbox"          element={<Inbox />} />
+            {/* Messaging */}
+            {/* “/threads” now shows the inbox list */}
+            <Route path="/threads"            element={<Inbox />} />
+            {/* “/threads/123” shows a single conversation */}
+            <Route path="/threads/:threadId"  element={<Thread />} />
+            {/* alias “/inbox” → same as /threads */}
+            <Route path="/inbox"              element={<Inbox />} />
             <Route path="/add-experience" element={<AddExperience />} />
 
             {/* User settings */}
@@ -62,6 +68,10 @@ export default function App() {
 
           {/* Catch-all: go home */}
           <Route path="*" element={<Navigate to="/" replace />} />
+
+          {/* Reset Password */}
+          <Route path="/forgot-password"  element={<ResetRequest />} />
+          <Route path="/reset-password"   element={<ResetPassword />} />
         </Routes>
       </Layout>
     </BrowserRouter>

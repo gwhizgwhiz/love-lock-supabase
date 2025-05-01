@@ -44,6 +44,9 @@ a {
 /* 4. Buttons */
 .btn,
 button {
+  display: inline-flex;               /* center text/icon */
+  align-items: center;                
+  justify-content: center;            
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   border: none;
@@ -52,14 +55,42 @@ button {
   color: white;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
+  text-align: center;                 /* fallback */
 }
+
 .btn:hover,
 button:hover {
   background-color: var(--brand-red-dark);
 }
+
+/* smaller button */
 .btn-small {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
+}
+
+/* new: outline (secondary) variant */
+.btn-outline {
+  background-color: transparent;
+  color: var(--brand-red);
+  border: 2px solid var(--brand-red);
+}
+
+.btn-outline:hover {
+  background-color: var(--brand-red);
+  color: white;
+}
+
+/* Inverse outline: default red fill, hover→white */
+.btn-inverse {
+  background-color: var(--brand-red);
+  color: white;
+  border: 2px solid var(--brand-red);
+}
+
+.btn-inverse:hover {
+  background-color: white;
+  color: var(--brand-red);
 }
 
 /* 5. Forms & Inputs */

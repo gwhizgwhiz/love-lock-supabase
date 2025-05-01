@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState }  from 'react';
 import { useNavigate }      from 'react-router-dom';
 import supabase             from '../supabaseClient';
 import loginImg             from '../assets/login_img.jpg';
+import { Link }             from 'react-router-dom'
 import '../App.css';
 
 export default function LogIn() {
@@ -60,7 +61,10 @@ export default function LogIn() {
           <button type="submit" className="btn">Log In</button>
         </form>
         <p className="signup-link">
-          Don't have an account? <a href="/signup">Sign up</a>
+          Don’t have an account? <Link to="/signup">Sign up</Link>
+        </p>
+        <p className="signup-link">
+          Forgot your password? <Link to="/forgot-password">Reset it here</Link>
         </p>
       </div>
     </div>

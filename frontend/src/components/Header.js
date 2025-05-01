@@ -6,11 +6,12 @@ import logo                                 from '../assets/logo.png';
 import '../App.css';  // your .header, .btn, .avatar, .dropdown-menu, etc.
 
 export default function Header() {
-  const [user, setUser]     = useState(null);
-  const [slug, setSlug]     = useState(null);
-  const [open, setOpen]     = useState(false);
-  const navigate            = useNavigate();
-  const dropdownRef         = useRef();
+  const [user, setUser]               = useState(null);
+  const [slug, setSlug]               = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [open, setOpen]               = useState(false);
+  const navigate                      = useNavigate();
+  const dropdownRef                   = useRef();
 
   useEffect(() => {
     // 1) Get initial session user
@@ -29,6 +30,7 @@ export default function Header() {
   useEffect(() => {
     if (!user) {
       setSlug(null);
+      setUnreadCount(0);
       return;
     }
     supabase
@@ -38,6 +40,16 @@ export default function Header() {
       .single()
       .then(({ data, error }) => {
         if (data?.slug) setSlug(data.slug);
+      });
+    // Fetch total unread across all threads
+    supabase
+      .from('inbox_with_profile_view')
+      .select('unread_count')
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const total = data.reduce((sum, row) => sum + (row.unread_count || 0), 0);
+          setUnreadCount(total);
+        }
       });
   }, [user]);
 
@@ -84,10 +96,29 @@ export default function Header() {
       {user && (
         <div className="header-right" ref={dropdownRef}>
           <Link to="/profiles">
-            <button className="btn" style={{ marginRight: '1rem' }}>
+            <button className="btn-inverse btn-small" style={{ marginRight: '1rem' }}>
               View Profiles
             </button>
           </Link>
+          {/* Inbox only for logged-in users */}
+          {/* Inbox with unread badge */}
+         <Link to="/inbox" style={{ position: 'relative', marginRight: '1rem' }}>
+           <button className="btn-outline btn-small">Inbox</button>
+           {unreadCount > 0 && (
+             <span style={{
+               position: 'absolute',
+               top: -6,
+               right: 4,
+               background: '#FF3B30',
+               color: 'white',
+               borderRadius: '50%',
+               padding: '2px 6px',
+               fontSize: '0.75em'
+             }}>
+               {unreadCount}
+             </span>
+           )}
+         </Link>
 
           <div
             className="avatar"
@@ -119,18 +150,18 @@ export default function Header() {
                 My Profile
               </Link>
               <Link
-                to="/settings"
-                className="dropdown-item"
-                onClick={() => setOpen(false)}
-              >
-                Settings
-              </Link>
-              <Link
                 to="/preferences"
                 className="dropdown-item"
                 onClick={() => setOpen(false)}
               >
                 Preferences
+              </Link>
+              <Link
+                to="/settings"
+                className="dropdown-item"
+                onClick={() => setOpen(false)}
+              >
+                Settings
               </Link>
               <button
                 className="logout-item"

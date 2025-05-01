@@ -1,185 +1,98 @@
-// src/pages/Inbox.js
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate }                from 'react-router-dom';
-import supabase                       from '../supabaseClient';
-import '../App.css';
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import supabase from '../supabaseClient'
 
 export default function Inbox() {
-  const [user, setUser]               = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [profiles, setProfiles]       = useState([]);
-  const [selectedReceiver, setSelectedReceiver] = useState('');
-  const [messages, setMessages]       = useState([]);
-  const [loadingMsgs, setLoadingMsgs] = useState(true);
-  const [newMessage, setNewMessage]   = useState('');
-  const [error, setError]             = useState(null);
-  const navigate                      = useNavigate();
+  const [threads, setThreads] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState(null)
+  const [query, setQuery]     = useState('')
 
-  // 1️⃣ Auth & email‑verification guard
   useEffect(() => {
-    (async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error)        return setError('Auth error');
-      if (!user)        return navigate('/login', { replace: true });
-      if (!user.email_confirmed_at) {
-        return navigate('/verify-email', { replace: true });
-      }
-      setUser(user);
-      setLoadingUser(false);
-    })();
-  }, [navigate]);
+    supabase
+      .from('inbox_with_profile_view')
+      .select(`
+        thread_id,
+        other_user_name,
+        other_user_slug,
+        other_user_avatar_url,
+        unread_count,
+        last_message,
+        last_message_at
+      `)
+      .order('last_message_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Inbox load error:', error)
+          setError('Could not load your inbox.')
+        } else {
+          setThreads(data)
+        }
+        setLoading(false)
+      })
+  }, [])
 
-  // 2️⃣ Load only fully completed profiles
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data, error } = await supabase
-        .from('public_profile_view')     // your completed‑profiles view
-        .select('id, main_alias')        // id + display name
-        .neq('id', user.id)              // exclude self
-        .order('main_alias', { ascending: true });
-      if (error) {
-        console.error(error);
-      } else {
-        setProfiles(data);
-        if (data[0]) setSelectedReceiver(data[0].id);
-      }
-    })();
-  }, [user]);
-
-  // 3️⃣ Fetch messages sent to you
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      setLoadingMsgs(true);
-      const { data, error } = await supabase
-        .from('message')
-        .select('id, content, sent_at, sender_id')
-        .eq('receiver_id', user.id)
-        .order('sent_at', { ascending: false });
-      if (error) setError('Failed to load messages');
-      else      setMessages(data);
-      setLoadingMsgs(false);
-    })();
-  }, [user]);
-
-  // 4️⃣ Real‑time subscription
-  useEffect(() => {
-    if (!user) return;
-    const chan = supabase
-      .channel(`message:receiver_id=eq.${user.id}`)
-      .on('postgres_changes',
-        {
-          event:  'INSERT',
-          schema: 'public',
-          table:  'message',
-          filter: `receiver_id=eq.${user.id}`
-        },
-        ({ new: msg }) => setMessages(curr => [msg, ...curr])
-      )
-      .subscribe();
-    return () => supabase.removeChannel(chan);
-  }, [user]);
-
-  // 5️⃣ Send to selected profile only
-  const handleSend = async e => {
-    e.preventDefault();
-    const text = newMessage.trim();
-    if (!text || !selectedReceiver) return;
-    if (selectedReceiver === user.id) {
-      setError("You can’t message yourself.");
-      return;
-    }
-    const { error } = await supabase
-      .from('message')
-      .insert({
-        sender_id:   user.id,
-        receiver_id: selectedReceiver,
-        content:     text
-      });
-    if (error) setError('Send failed');
-    else {
-      setNewMessage('');
-      setError(null);
-    }
-  };
-
-  // 6️⃣ Logout
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login', { replace: true });
-  };
-
-  // ─── RENDER ──────────────────
-  if (loadingUser) return <div className="spinner" />;
-  if (error)       return <p className="empty-state">{error}</p>;
+  // client-side filter
+  const filtered = threads.filter(t =>
+    t.other_user_name.toLowerCase().includes(query.toLowerCase()) ||
+    (t.last_message || '').toLowerCase().includes(query.toLowerCase())
+  )
 
   return (
     <div className="inbox-container">
       <div className="inbox-card">
         <h1>Inbox</h1>
-        <p>Welcome, {user.email}</p>
 
-        {/* Compose: only completed profiles appear */}
-        {profiles.length > 0 && (
-          <form onSubmit={handleSend} style={{ marginBottom: '1rem' }}>
-            <select
-              value={selectedReceiver}
-              onChange={e => setSelectedReceiver(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                borderRadius: 4,
-                border: '1px solid var(--border-light)',
-                marginBottom: '0.5rem'
-              }}
-            >
-              {profiles.map(p => (
-                <option key={p.id} value={p.id}>
-                  {p.main_alias}
-                </option>
-              ))}
-            </select>
-            <textarea
-              value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
-              placeholder="Write your message…"
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: 4,
-                border: '1px solid var(--border-light)',
-                marginBottom: '0.5rem'
-              }}
-            />
-            <button type="submit" className="btn">
-              Send Message
-            </button>
-          </form>
+        <div className="inbox-controls" style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+          <Link to="/compose" className="btn-outline btn-small">
+            New Message
+          </Link>
+          <input
+            type="search"
+            placeholder="Search messages…"
+            className="input-field"
+            style={{ flex: 1 }}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
+        </div>
+
+        {loading && <div className="spinner" />}
+        {error   && <p className="empty-state">{error}</p>}
+        {!loading && !error && filtered.length === 0 && (
+          <p className="empty-state">No conversations yet.</p>
         )}
 
-        {/* Message list */}
-        {loadingMsgs ? (
-          <div className="spinner" />
-        ) : messages.length > 0 ? (
-          <ul className="message-list">
-            {messages.map(msg => (
-              <li key={msg.id} className="message-item">
-                <h2>{new Date(msg.sent_at).toLocaleString()}</h2>
-                <p>{msg.content}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="empty-state">No messages yet.</p>
-        )}
-
-        <button onClick={handleLogout} className="btn">
-          Logout
-        </button>
+        <ul className="message-list">
+          {!loading && !error && filtered.map(t => (
+            <li key={t.thread_id} className="message-item">
+              <Link to={`/threads/${t.thread_id}`}>
+                <h2>
+                  {t.other_user_name}
+                  {t.unread_count > 0 && (
+                    <span
+                      style={{
+                        marginLeft: '0.5rem',
+                        background: 'var(--brand-red)',
+                        color: 'white',
+                        borderRadius: '1em',
+                        padding: '0 .5em',
+                        fontSize: '0.8em'
+                      }}
+                    >
+                      {t.unread_count}
+                    </span>
+                  )}
+                </h2>
+                {t.last_message && <p>{t.last_message}</p>}
+                <p style={{ fontSize: '0.8em', color: 'var(--text-secondary)' }}>
+                  {new Date(t.last_message_at).toLocaleString()}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
-  );
+  )
 }
