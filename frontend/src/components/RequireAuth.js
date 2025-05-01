@@ -1,26 +1,42 @@
 // src/components/RequireAuth.jsx
-import React from 'react';
-import { Navigate, useLocation, Outlet } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import React, { useState, useEffect } from 'react'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import supabase from '../supabaseClient'
 
 export default function RequireAuth() {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+  const [session, setSession] = useState(undefined)
+  const location = useLocation()
 
-  if (loading) {
-    return <p>Loading…</p>;
+  useEffect(() => {
+    // 1) On mount, load any persisted session (incl. magic-link / recovery)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    // 2) Subscribe to future auth changes (login, logout, recovery)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, currentSession) => {
+        setSession(currentSession)
+      }
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // 3) While we don’t yet know, show a spinner (or your loading UI)
+  if (session === undefined) {
+    return <div className="spinner" />
   }
 
-  // Not signed in → send to login
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // 4) Not signed in → bounce to login (preserve intended destination)
+  if (!session) {
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // Signed in but email not confirmed → verify email flow
-  if (!user.email_confirmed_at) {
-    return <Navigate to="/verify-email" replace />;
+  // 5) Signed in but email unconfirmed → verify-email flow
+  if (!session.user.email_confirmed_at) {
+    return <Navigate to="/verify-email" replace />
   }
 
-  // All good → render the child routes here
-  return <Outlet />;
+  // 6) Otherwise you’re good—render child routes
+  return <Outlet />
 }

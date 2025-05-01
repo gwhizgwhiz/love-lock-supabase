@@ -1,4 +1,5 @@
 // src/App.js
+
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
@@ -35,23 +36,23 @@ export default function App() {
       <Layout>
         <Routes>
 
-          {/* Public routes */}
-          <Route path="/"                element={<HomePage />} />
-          <Route path="/login"           element={<LogIn />} />
-          <Route path="/signup"          element={<SignUp />} />
-          <Route path="/verify-email"    element={<VerifyEmail />} />
+          {/* === Public Routes === */}
+          <Route path="/"               element={<HomePage />} />
+          <Route path="/login"          element={<LogIn />} />
+          <Route path="/signup"         element={<SignUp />} />
+          <Route path="/verify-email"   element={<VerifyEmail />} />
 
-          {/* Password‐reset (also public) */}
+          {/* Password reset links */}
           <Route path="/forgot-password" element={<ResetRequest />} />
           <Route path="/reset-password"  element={<ResetPassword />} />
 
-          {/* All the routes below require a logged-in user */}
+          {/* === Protected: require a logged‐in user === */}
           <Route element={<RequireAuth />}>
 
             {/* Profile setup */}
             <Route path="/create-profile" element={<ProfileCreate />} />
 
-            {/* Profile browsing/editing */}
+            {/* Profile browsing & editing */}
             <Route path="/profiles"       element={<ProfilesPage />} />
             <Route path="/profiles/:slug" element={<ProfileDetail />} />
             <Route path="/profile/edit"   element={<ProfileEdit />} />
@@ -59,6 +60,7 @@ export default function App() {
             {/* Messaging */}
             <Route path="/compose"            element={<Compose />} />
             <Route path="/inbox"              element={<Inbox />} />
+            {/* alias /threads → /inbox */}
             <Route path="/threads"            element={<Navigate to="/inbox" replace />} />
             <Route path="/threads/:threadId"  element={<Thread />} />
 
@@ -69,14 +71,15 @@ export default function App() {
             <Route path="/settings"    element={<Settings />} />
             <Route path="/preferences" element={<Preferences />} />
 
-            {/* Admin-only */}
+            {/* === Admin-only === */}
             <Route element={<RequireAdmin />}>
               <Route path="/admin/criteria" element={<RatingCriteriaAdmin />} />
             </Route>
           </Route>
 
-          {/* Catch-all: redirect unknown URLs to home */}
+          {/* === Catch-all: redirect anything else home === */}
           <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
       </Layout>
     </BrowserRouter>
