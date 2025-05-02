@@ -35,7 +35,8 @@ export default function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
-
+{/* TEMP TEST: expose Compose to make sure routing works */}
++         <Route path="/compose" element={<Compose />} />
           {/* === Public Routes === */}
           <Route path="/"               element={<HomePage />} />
           <Route path="/login"          element={<LogIn />} />

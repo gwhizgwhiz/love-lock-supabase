@@ -8,35 +8,33 @@ export default function RequireAuth() {
   const location = useLocation()
 
   useEffect(() => {
-    // 1) On mount, load any persisted session (incl. magic-link / recovery)
+    // 1) Load any existing session (from localStorage / URL fragment)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
 
     // 2) Subscribe to future auth changes (login, logout, recovery)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, currentSession) => {
-        setSession(currentSession)
-      }
+      (_event, current) => setSession(current)
     )
     return () => subscription.unsubscribe()
   }, [])
 
-  // 3) While we don’t yet know, show a spinner (or your loading UI)
+  // 3) While we’re checking, show a spinner
   if (session === undefined) {
     return <div className="spinner" />
   }
 
-  // 4) Not signed in → bounce to login (preserve intended destination)
+  // 4) If not logged in, redirect to /login
   if (!session) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // 5) Signed in but email unconfirmed → verify-email flow
+  // 5) If email isn’t confirmed yet, send to /verify-email
   if (!session.user.email_confirmed_at) {
     return <Navigate to="/verify-email" replace />
   }
 
-  // 6) Otherwise you’re good—render child routes
+  // 6) Otherwise render the protected routes
   return <Outlet />
 }
