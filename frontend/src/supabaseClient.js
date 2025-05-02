@@ -1,19 +1,15 @@
-// src/supabaseClient.js
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-let supabaseUrl = process.env.REACT_APP_SUPABASE_URL || '';
-let supabaseKey = process.env.REACT_APP_SUPABASE_KEY || '';
+const supabaseUrl = 'https://crlemvoabxplrioytnuv.supabase.co'
+// ← Replace this with YOUR anon key (the one you just copied)
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybGVtdm9hYnhwbHJpb3l0bnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ0OTA0NjgsImV4cCI6MjA2MDA2NjQ2OH0.54kYfrHuzAE0mw5iT2ckc9GJxErj4vBNx6tAC6q5saQ'
 
-// Trim whitespace/newlines and strip any BOM or other non‑ASCII
-supabaseUrl = supabaseUrl.trim().replace(/[\uFEFF]/g, '');
-supabaseKey = supabaseKey.trim().replace(/[\uFEFF]/g, '');
+console.log('✅ Supa URL:', supabaseUrl)
+console.log('✅ Supa KEY slice:', supabaseKey.slice(0,5))
 
-console.log('🔑 URL chars:', [...supabaseUrl].map(c => c.charCodeAt(0)));
-console.log('🔑 KEY chars sample:', [...supabaseKey].slice(0,5).map(c => c.charCodeAt(0)));
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing REACT_APP_SUPABASE_URL or REACT_APP_SUPABASE_KEY in .env');
-}
-
-// Now both strings are guaranteed pure ASCII (code points 32–126)
-export default createClient(supabaseUrl, supabaseKey);
+export default createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+})

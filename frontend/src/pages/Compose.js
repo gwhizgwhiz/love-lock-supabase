@@ -1,75 +1,91 @@
 // src/pages/Compose.jsx
 import React, { useState, useEffect } from 'react'
-import { useNavigate }                 from 'react-router-dom'
+import { useNavigate, Link }           from 'react-router-dom'
 import supabase                       from '../supabaseClient'
 import useAuth                        from '../hooks/useAuth'
 
 export default function Compose() {
   const { user, loading: authLoading } = useAuth()
-  const [users, setUsers]    = useState([])
-  const [toUser, setToUser]  = useState('')
-  const [text, setText]      = useState('')
-  const [sending, setSending]= useState(false)
-  const [error, setError]    = useState(null)
-  const navigate             = useNavigate()
+  const [profiles, setProfiles]        = useState([])
+  const [toUser, setToUser]            = useState('')
+  const [text, setText]                = useState('')
+  const [sending, setSending]          = useState(false)
+  const [error, setError]              = useState(null)
+  const navigate                       = useNavigate()
 
-  // 1) Once we know who’s logged in, fetch every other profile
+  // 1) Load everyone else
   useEffect(() => {
-    if (authLoading) return
-    if (!user) return
-
+    if (authLoading || !user) return
     supabase
       .from('person_of_interest')
       .select('created_by, slug')
       .neq('created_by', user.id)
       .then(({ data, error }) => {
-        if (error) setError('Could not load users.')
-        else setUsers(data)
+        if (error) {
+          console.error('LOAD PROFILES ERROR', error)
+          setError('Could not load users.')
+        } else {
+          setProfiles(data)
+        }
       })
   }, [authLoading, user])
 
-  // 2) Create thread + send first message
+  // 2) Create thread + send first message (now with debug logs)
   const handleSubmit = async e => {
     e.preventDefault()
-    if (!toUser || !text.trim()) return
+    console.log('🚀 handleSubmit()', { toUser, text, userId: user?.id })
+
+    if (!toUser || !text.trim()) {
+      console.warn('📋 Missing toUser or empty text, aborting.')
+      return
+    }
 
     setSending(true)
     setError(null)
 
     try {
-      // insert a new thread
+      // A) Insert thread
       const { data: threads, error: threadErr } = await supabase
         .from('message_threads')
-        .insert({ other_user_id: toUser })
-        .select('thread_id')
+        .insert({ user_one: user.id, user_two: toUser })
+        .select('id')
+      console.log('🔨 thread insert result', { threads, threadErr })
       if (threadErr) throw threadErr
+      const threadId = threads[0].id
 
-      const thread_id = threads[0].thread_id
-
-      // send the first message
+      // B) RPC to send first message
       const { error: msgErr } = await supabase.rpc('send_message', {
-        p_thread_id: thread_id,
+        p_thread_id: threadId,
         p_text: text.trim(),
       })
+      console.log('✉️ rpc send_message result', { msgErr })
       if (msgErr) throw msgErr
 
-      // go into the new conversation
-      navigate(`/threads/${thread_id}`)
+      // C) Navigate
+      console.log('🎉 navigate to', `/threads/${threadId}`)
+      navigate(`/threads/${threadId}`)
     } catch (err) {
-      console.error(err)
-      setError(err.message)
+      console.error('❌ COMPOSE ERROR', err)
+      setError(err.message || 'Unknown error')
       setSending(false)
     }
   }
 
-  // 3) Show spinner while auth state is resolving
   if (authLoading) return <div className="spinner" />
 
   return (
     <div className="inbox-container">
       <div className="inbox-card">
-        <h1>New Message</h1>
+        {/* Back link */}
+        <div style={{ marginBottom: '1rem' }}>
+          <Link to="/inbox" className="btn btn-small" style={{
+            background:'transparent', color:'var(--brand-red)', border:'2px solid var(--brand-red)'
+          }}>
+            ← Back to Inbox
+          </Link>
+        </div>
 
+        <h1>New Message</h1>
         <form onSubmit={handleSubmit} className="form">
           <label>
             To
@@ -80,9 +96,9 @@ export default function Compose() {
               required
             >
               <option value="">— select a user —</option>
-              {users.map(u => (
-                <option key={u.created_by} value={u.created_by}>
-                  {u.slug}
+              {profiles.map(p => (
+                <option key={p.created_by} value={p.created_by}>
+                  {p.slug}
                 </option>
               ))}
             </select>
