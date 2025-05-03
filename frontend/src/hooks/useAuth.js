@@ -1,28 +1,44 @@
-// src/hooks/useAuth.js
-import { useState, useEffect } from 'react'
-import supabase               from '../supabaseClient'
+import { useEffect, useState } from 'react'
+import supabase from '../supabaseClient'
 
 export default function useAuth() {
-  const [session, setSession] = useState(undefined)
+  const [user, setUser] = useState(null)
+  const [slug, setSlug] = useState(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    // 1) Load any existing session (incl. magic-link or reset)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-
-    // 2) Subscribe to future auth changes (sign in, sign out, recovery)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, currentSession) => {
-        setSession(currentSession)
-      }
+    // Initial and on‑change auth
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      (_evt, session) => setUser(session?.user ?? null)
     )
-    return () => subscription.unsubscribe()
+    return () => sub.subscription.unsubscribe()
   }, [])
 
-  // loading = true until we know if there’s a session or not
-  const loading = session === undefined
-  const user    = session?.user ?? null
+  useEffect(() => {
+    if (!user) {
+      setSlug(null)
+      setUnreadCount(0)
+      return
+    }
 
-  return { user, loading }
+    // Fetch profile slug
+    supabase
+      .from('person_of_interest')
+      .select('slug')
+      .eq('created_by', user.id)
+      .single()
+      .then(({ data }) => data?.slug && setSlug(data.slug))
+
+    // Fetch total unread count
+    supabase
+      .from('inbox_with_profile_view')
+      .select('unread_count')
+      .then(({ data }) => {
+        const total = (data || []).reduce((sum, r) => sum + (r.unread_count || 0), 0)
+        setUnreadCount(total)
+      })
+  }, [user])
+
+  return { user, slug, unreadCount }
 }
