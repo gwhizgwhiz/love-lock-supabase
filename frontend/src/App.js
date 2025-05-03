@@ -1,79 +1,75 @@
 // src/App.js
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import Layout               from './components/Layout';
-import HomePage             from './HomePage';
-import SignUp               from './pages/SignUp';
-import LogIn                from './pages/LogIn';
-import VerifyEmail          from './pages/VerifyEmail';
-import ProfileCreate        from './pages/ProfileCreate';
-import ProfileEdit          from './pages/ProfileEdit';
-import ProfilesPage         from './pages/ProfilesPage';
-import ProfileDetail        from './pages/ProfileDetail';
-import Inbox                from './pages/Inbox';
-import Thread               from './pages/Thread';
-import AddExperience        from './components/AddExperience';
-import Settings             from './pages/Settings';
-import Preferences          from './pages/Preferences';
-import ResetRequest         from './pages/ResetRequest';
-import ResetPassword        from './pages/ResetPassword';
+import React, { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
-import RequireAuth          from './components/RequireAuth';
-import RequireAdmin         from './components/RequireAdmin';
-import RatingCriteriaAdmin  from './components/RatingCriteriaAdmin';
+import Layout               from './components/Layout'
+import RequireAuth          from './components/RequireAuth'
+import RequireAdmin         from './components/RequireAdmin'
+import RatingCriteriaAdmin  from './components/RatingCriteriaAdmin'
+
+import HomePage             from './HomePage'
+import LogIn                from './pages/LogIn'
+import SignUp               from './pages/SignUp'
+import VerifyEmail          from './pages/VerifyEmail'
+import ResetRequest         from './pages/ResetRequest'
+import ResetPassword        from './pages/ResetPassword'
+
+import ProfileCreate        from './pages/ProfileCreate'
+import ProfilesPage         from './pages/ProfilesPage'
+import ProfileDetail        from './pages/ProfileDetail'
+import ProfileEdit          from './pages/ProfileEdit'
+
+import Compose              from './pages/Compose'
+import Inbox                from './pages/Inbox'
+import Thread               from './pages/Thread'
+
+import AddExperience        from './components/AddExperience'
+import Settings             from './pages/Settings'
+import Preferences          from './pages/Preferences'
 
 export default function App() {
+  useEffect(() => {
+    console.log('🛠️  src/App.js has mounted')
+  }, [])
+
   return (
     <BrowserRouter>
       <Layout>
         <Routes>
           {/* Public */}
-          <Route path="/signup"       element={<SignUp />} />
-          <Route path="/login"        element={<LogIn />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/"               element={<HomePage />} />
+          <Route path="/login"          element={<LogIn />} />
+          <Route path="/signup"         element={<SignUp />} />
+          <Route path="/verify-email"   element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ResetRequest />} />
+          <Route path="/reset-password"  element={<ResetPassword />} />
 
-          {/* All of these require a logged-in user (and, as we’ll see, a slug) */}
+          {/* Protected */}
           <Route element={<RequireAuth />}>
-            {/* Profile setup */}
-            <Route path="/create-profile" element={<ProfileCreate />} />
+            <Route path="/create-profile"  element={<ProfileCreate />} />
+            <Route path="/profiles"        element={<ProfilesPage />} />
+            <Route path="/profiles/:slug"  element={<ProfileDetail />} />
+            <Route path="/profile/edit"    element={<ProfileEdit />} />
 
-            {/* Profile browsing/editing */}
-            <Route path="/profiles"       element={<ProfilesPage />} />
-            <Route path="/profiles/:slug" element={<ProfileDetail />} />
-            <Route path="/profile/edit"   element={<ProfileEdit />} />
+            <Route path="/inbox"           element={<Inbox />} />
+            <Route path="/compose"         element={<Compose />} />
+            <Route path="/threads"         element={<Navigate to="/inbox" replace />} />
+            <Route path="/threads/:threadId" element={<Thread />} />
 
-            {/* Core features */}
-            {/* Messaging */}
-            {/* “/threads” now shows the inbox list */}
-            <Route path="/threads"            element={<Inbox />} />
-            {/* “/threads/123” shows a single conversation */}
-            <Route path="/threads/:threadId"  element={<Thread />} />
-            {/* alias “/inbox” → same as /threads */}
-            <Route path="/inbox"              element={<Inbox />} />
-            <Route path="/add-experience" element={<AddExperience />} />
+            <Route path="/add-experience"  element={<AddExperience />} />
+            <Route path="/settings"        element={<Settings />} />
+            <Route path="/preferences"     element={<Preferences />} />
 
-            {/* User settings */}
-            <Route path="/settings"       element={<Settings />} />
-            <Route path="/preferences"    element={<Preferences />} />
-
-            {/* Admin */}
             <Route element={<RequireAdmin />}>
               <Route path="/admin/criteria" element={<RatingCriteriaAdmin />} />
             </Route>
           </Route>
 
-          {/* Public home */}
-          <Route path="/" element={<HomePage />} />
-
-          {/* Catch-all: go home */}
+          {/* Catch‑all */}
           <Route path="*" element={<Navigate to="/" replace />} />
-
-          {/* Reset Password */}
-          <Route path="/forgot-password"  element={<ResetRequest />} />
-          <Route path="/reset-password"   element={<ResetPassword />} />
         </Routes>
       </Layout>
     </BrowserRouter>
-  );
+  )
 }
