@@ -33,18 +33,18 @@ export default function ProfileEdit() {
         return;
       }
 
-      // 2) fetch existing person_of_interest
-      const { data, error: fetchErr } = await supabase
-        .from('person_of_interest')
-        .select('id, main_alias, slug, known_region, platforms, photo_reference_url')
-        .eq('created_by', user.id)
-        .single();
+      // 2) fetch existing current_user_profile_view
+      const { data, error } = await supabase
+      .from('person_of_interest')
+      .select('id, main_alias, slug, known_region, platforms, photo_reference_url')
+      .eq('created_by', user.id)
+      .single();
 
-      if (fetchErr && fetchErr.code !== 'PGRST116') {
-        setError(fetchErr.message);
-        setLoading(false);
-        return;
-      }
+    if (error && error.code !== 'PGRST116') {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
 
       if (data) {
         setProfile(data);

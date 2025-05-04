@@ -15,8 +15,8 @@ export default function ProfilesPage() {
     async function loadProfiles() {
       setLoading(true)
       const { data, error: dbErr } = await supabase
-        .from('public_profile_view_shared')
-        .select('poi_id, slug, main_alias, photo_reference_url, trust_score, known_region')
+        .from('public_profile_enriched_view')
+        .select('poi_id, slug, main_alias, avatar_url, trust_score, known_region')
 
       if (dbErr) {
         setError(dbErr.message)
@@ -27,11 +27,11 @@ export default function ProfilesPage() {
       const enriched = await Promise.all(
         data.map(async (p) => {
           let publicUrl = defaultAvatar
-          if (p.photo_reference_url) {
+          if (p.avatar_url) {
             const { data: urlData, error: urlErr } = supabase
               .storage
               .from('avatars')
-              .getPublicUrl(p.photo_reference_url)
+              .getPublicUrl(p.avatar_url)
             if (!urlErr && urlData?.publicUrl) publicUrl = urlData.publicUrl
           }
           return { ...p, avatar_url: publicUrl }

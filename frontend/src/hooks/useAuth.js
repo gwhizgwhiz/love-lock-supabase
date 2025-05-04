@@ -12,13 +12,9 @@ export default function useAuth() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null)
-      }
+      (_event, session) => setUser(session?.user ?? null)
     )
-    return () => {
-      listener.subscription.unsubscribe()
-    }
+    return () => listener.subscription.unsubscribe()
   }, [])
 
   // When `user` changes, fetch slug, avatar, and unread count
@@ -30,15 +26,16 @@ export default function useAuth() {
       return
     }
 
-    // 1) Fetch slug + photo_reference_url from your table
-    supabase
-      .from('person_of_interest')
-      .select('slug, photo_reference_url')
-      .eq('created_by', user.id)
-      .single()
-      .then(({ data, error }) => {
+    ;(async () => {
+      // 1) Fetch slug + photo_reference_url from the RLS‑protected view
+      try {
+        const { data, error } = await supabase
+          .from('current_user_profile_view')
+          .select('slug, photo_reference_url')
+          .single()
+
         if (error) {
-          console.error('Error fetching profile info:', error)
+          console.error('Supabase error fetching profile info:', error)
           return
         }
         if (data) {
@@ -47,7 +44,7 @@ export default function useAuth() {
           // 2) Turn the storage path into a public URL
           const { data: urlData, error: urlError } = supabase
             .storage
-            .from('avatars')                  // ← replace 'avatars' with your bucket name
+            .from('avatars')                  // your bucket
             .getPublicUrl(data.photo_reference_url)
 
           if (urlError) {
@@ -57,19 +54,25 @@ export default function useAuth() {
             setAvatarUrl(urlData.publicUrl)
           }
         }
-      })
+      } catch (networkError) {
+        console.error('Network error fetching profile info:', networkError)
+      }
 
-    // 3) Fetch total unread count from your view
-    supabase
-      .from('inbox_with_profile_view')
-      .select('unread_count')
-      .then(({ data }) => {
+      // 3) Fetch total unread count from your existing view
+      try {
+        const { data } = await supabase
+          .from('inbox_with_profile_view')
+          .select('unread_count')
+
         const total = (data || []).reduce(
           (sum, row) => sum + (row.unread_count || 0),
           0
         )
         setUnreadCount(total)
-      })
+      } catch (err) {
+        console.error('Error fetching unread count:', err)
+      }
+    })()
   }, [user])
 
   return { user, slug, avatarUrl, unreadCount }

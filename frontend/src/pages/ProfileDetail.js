@@ -23,20 +23,22 @@ export default function ProfileDetail() {
 
       // 1) fetch the shared public view
       const { data: p, error: pErr } = await supabase
-        .from('public_profile_view_shared')
+        .from('public_profile_enriched_view')
         .select(`
           poi_id,
           slug,
           main_alias,
           known_region,
-          photo_reference_url,
+          avatar_url,
           trust_score,
+          trust_badge,
+          is_shareable,
           total_interactions,
           positive_pct,
           last_interaction
         `)
         .eq('slug', slug)
-        .single();
+        .single()
 
       if (pErr || !p) {
         setNotFound(true);
@@ -45,11 +47,11 @@ export default function ProfileDetail() {
       }
 
       // 2) fetch avatar (or fall back)
-      if (p.photo_reference_url) {
+      if (p.avatar_url) {
         const { data: { publicUrl }, error: urlErr } = supabase
           .storage
           .from('avatars')
-          .getPublicUrl(p.photo_reference_url);
+          .getPublicUrl(p.avatar_url);
         if (!urlErr && publicUrl) setAvatarUrl(publicUrl);
       }
 
