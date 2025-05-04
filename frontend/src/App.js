@@ -44,11 +44,12 @@ export default function App() {
           <Route path="/verify-email"   element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ResetRequest />} />
           <Route path="/reset-password"  element={<ResetPassword />} />
+          <Route path="/profiles"        element={<ProfilesPage />} />
 
           {/* Protected */}
           <Route element={<RequireAuth />}>
             <Route path="/create-profile"  element={<ProfileCreate />} />
-            <Route path="/profiles"        element={<ProfilesPage />} />
+            
             <Route path="/profiles/:slug"  element={<ProfileDetail />} />
             <Route path="/profile/edit"    element={<ProfileEdit />} />
 

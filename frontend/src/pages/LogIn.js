@@ -35,7 +35,7 @@ export default function LogIn() {
         <img src={loginImg} alt="Login Illustration" className="login-img" />
       </div>
       <div className="login-form">
-        <h1>Login</h1>
+        <h1>Log In</h1>
         {error && <p className="error-message">{error}</p>}
         <form onSubmit={handleLogin}>
           <div className="input-group">

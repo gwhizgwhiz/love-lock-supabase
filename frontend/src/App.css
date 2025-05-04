@@ -169,7 +169,7 @@ select {
 }
 .header .logo { width: 75px; }
 .header .avatar {
-  width: 40px; height: 40px;
+  width: auto; height: 40px;
   border-radius: 50%;
   background: var(--brand-red);
   color: white;
@@ -218,21 +218,21 @@ select {
   color: var(--brand-red-dark);
 }
 
-/* 8. Login / Signup Layout (even halves + unified padding) */
+/* 8. Login & Signup Layout (identical) */
 .login-container,
-.login-container.signup-page {
+.signup-page {
   display: grid;
-  grid-template-columns: 1fr 1fr;            /* two equal columns */
-  grid-template-rows: 1fr;                   /* one full-height row */
-  gap: 2rem;                                 /* space between cards */
-  padding: 2rem;                             /* outer padding */
-  height: calc(100vh - 64px);                /* full viewport minus header */
+  grid-template-columns: 1fr 1fr;     /* two equal columns */
+  grid-template-rows: 1fr;            /* one full-height row */
+  gap: 2rem;                          /* space between columns */
+  padding: 2rem;                      /* outer padding */
+  height: calc(100vh - 64px);         /* full viewport minus header */
   background: var(--bg-page);
 }
 
 @media (max-width: 768px) {
   .login-container,
-  .login-container.signup-page {
+  .signup-page {
     display: block;
     padding: 1rem;
     height: auto;
