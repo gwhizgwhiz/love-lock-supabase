@@ -55,7 +55,7 @@ export default function Header() {
             </div>
 
             <button
-              className="btn btn-small"
+              className="btn-outline btn-small"
               onClick={() => navigate('/add-experience')}
             >
               Rate a Date
