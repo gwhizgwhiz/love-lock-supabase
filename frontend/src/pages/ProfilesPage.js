@@ -27,7 +27,7 @@ export default function ProfilesPage() {
       const enriched = await Promise.all(
         data.map(async (p) => {
           let publicUrl = defaultAvatar
-          if (p.photo_reference_url) {
+          if (p.avatar_url) {
             const { data: urlData, error: urlErr } = supabase
               .storage
               .from('avatars')
