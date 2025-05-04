@@ -1,34 +1,35 @@
 // src/pages/ProfileDetail.js
 import React, { useState, useEffect } from 'react';
-import { useParams, Link }              from 'react-router-dom';
-import supabase                          from '../supabaseClient';
-import useAuth                           from '../hooks/useAuth';
-import defaultAvatar                     from '../assets/default-avatar.png';
+import { useParams, Link } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import useAuth from '../hooks/useAuth';
+import defaultAvatar from '../assets/default-avatar.png';
 import '../App.css';
 
 export default function ProfileDetail() {
   const { slug } = useParams();
   const { user, loading: authLoading } = useAuth();
-  const [profile, setProfile]          = useState(null);
-  const [avatarUrl, setAvatarUrl]      = useState(defaultAvatar);
-  const [interactions, setInteractions]= useState([]);
-  const [breakdown, setBreakdown]      = useState([]);
-  const [createdBy, setCreatedBy]      = useState(null);
-  const [loading, setLoading]          = useState(true);
-  const [notFound, setNotFound]        = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
+  const [interactions, setInteractions] = useState([]);
+  const [breakdown, setBreakdown] = useState([]);
+  const [createdBy, setCreatedBy] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
 
-      // 1) fetch the shared public view
       const { data: p, error: pErr } = await supabase
         .from('public_profile_enriched_view')
         .select(`
           poi_id,
           slug,
           main_alias,
-          known_region,
+          city,
+          state,
+          zipcode,
           avatar_url,
           trust_score,
           trust_badge,
@@ -38,7 +39,7 @@ export default function ProfileDetail() {
           last_interaction
         `)
         .eq('slug', slug)
-        .single()
+        .single();
 
       if (pErr || !p) {
         setNotFound(true);
@@ -46,16 +47,14 @@ export default function ProfileDetail() {
         return;
       }
 
-      // 2) fetch avatar (or fall back)
-      if (p.avatar_url) {
+      if (p.photo_reference_url) {
         const { data: { publicUrl }, error: urlErr } = supabase
           .storage
           .from('avatars')
-          .getPublicUrl(p.avatar_url);
+          .getPublicUrl(p.photo_reference_url);
         if (!urlErr && publicUrl) setAvatarUrl(publicUrl);
       }
 
-      // 3) recent interactions
       const { data: ints = [] } = await supabase
         .from('public_interactions_view')
         .select('id, interaction_type, occurred_at, outcome_rating')
@@ -63,7 +62,6 @@ export default function ProfileDetail() {
         .order('occurred_at', { ascending: false })
         .limit(10);
 
-      // 4) who owns this profile?
       const { data: poiRow, error: poiErr } = await supabase
         .from('person_of_interest')
         .select('created_by')
@@ -71,7 +69,6 @@ export default function ProfileDetail() {
         .single();
       if (!poiErr && poiRow) setCreatedBy(poiRow.created_by);
 
-      // 5) breakdown RPC
       let bd = [];
       try {
         const { data: rpcData = [] } = await supabase
@@ -89,26 +86,22 @@ export default function ProfileDetail() {
   }, [slug]);
 
   if (loading || authLoading) return <div className="spinner">Loading…</div>;
-  if (notFound)              return <p className="empty-state">Profile not found.</p>;
+  if (notFound) return <p className="empty-state">Profile not found.</p>;
 
   const isOwner = user?.id === createdBy;
-  const hearts  = Math.max(0, Math.round(profile.trust_score || 0));
+  const hearts = Math.max(0, Math.round(profile.trust_score || 0));
 
   return (
     <div className="detail-container">
-      <section
-        className="hero"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: '#FCEAEA',
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          marginBottom: '2rem'
-        }}
-      >
-        {/* Left: avatar + info */}
+      <section className="hero" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: '#FCEAEA',
+        padding: '1.5rem',
+        borderRadius: '0.5rem',
+        marginBottom: '2rem'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <img
             src={avatarUrl}
@@ -136,11 +129,11 @@ export default function ProfileDetail() {
               <span>
                 Last: {new Date(profile.last_interaction).toLocaleDateString()}
               </span>
+              <span>{profile.city}, {profile.state}</span>
             </div>
           </div>
         </div>
 
-        {/* Right: edit button */}
         {isOwner && (
           <div>
             <Link to="/profile/edit">

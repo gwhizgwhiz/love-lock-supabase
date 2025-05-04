@@ -1,22 +1,22 @@
 // frontend/src/pages/ProfilesPage.js
 import React, { useEffect, useState } from 'react'
-import { Link }                       from 'react-router-dom'
-import supabase                       from '../supabaseClient'
-import defaultAvatar                  from '../assets/default-avatar.png'
+import { Link } from 'react-router-dom'
+import supabase from '../supabaseClient'
+import defaultAvatar from '../assets/default-avatar.png'
 import '../App.css'
 
 export default function ProfilesPage() {
   const [profiles, setProfiles] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState(null)
-  const [search, setSearch]     = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     async function loadProfiles() {
       setLoading(true)
       const { data, error: dbErr } = await supabase
         .from('public_profile_enriched_view')
-        .select('poi_id, slug, main_alias, avatar_url, trust_score, known_region')
+        .select('poi_id, slug, main_alias, avatar_url, trust_score, city, state')
 
       if (dbErr) {
         setError(dbErr.message)
@@ -27,11 +27,11 @@ export default function ProfilesPage() {
       const enriched = await Promise.all(
         data.map(async (p) => {
           let publicUrl = defaultAvatar
-          if (p.avatar_url) {
+          if (p.photo_reference_url) {
             const { data: urlData, error: urlErr } = supabase
               .storage
               .from('avatars')
-              .getPublicUrl(p.avatar_url)
+              .getPublicUrl(p.photo_reference_url)
             if (!urlErr && urlData?.publicUrl) publicUrl = urlData.publicUrl
           }
           return { ...p, avatar_url: publicUrl }
@@ -48,11 +48,11 @@ export default function ProfilesPage() {
   const filtered = profiles.filter(p =>
     p.main_alias.toLowerCase().includes(q) ||
     p.slug.toLowerCase().includes(q) ||
-    (p.known_region || '').toLowerCase().includes(q)
+    `${p.city}, ${p.state}`.toLowerCase().includes(q)
   )
 
   if (loading) return <div className="spinner">Loading…</div>
-  if (error)   return <p className="empty-state">{error}</p>
+  if (error) return <p className="empty-state">{error}</p>
 
   return (
     <div className="container">
@@ -60,7 +60,7 @@ export default function ProfilesPage() {
       <div className="search-bar">
         <input
           type="text"
-          placeholder="Search by name, slug or region…"
+          placeholder="Search by name, slug, or city/state…"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -85,12 +85,12 @@ export default function ProfilesPage() {
               <div className="trust-score">
                 {'❤️'.repeat(Math.max(0, Math.round(p.trust_score)))}
                 <span className="score-number">
-                  {(p.trust_score||0).toFixed(1)}
+                  {(p.trust_score || 0).toFixed(1)}
                 </span>
               </div>
-              {p.known_region && (
-                <small className="region">{p.known_region}</small>
-              )}
+              <small className="region">
+                {p.city}, {p.state}
+              </small>
             </Link>
           ))}
         </div>
