@@ -47,11 +47,11 @@ export default function ProfileDetail() {
         return;
       }
 
-      if (p.photo_reference_url) {
+      if (p.avatar_url) {
         const { data: { publicUrl }, error: urlErr } = supabase
           .storage
           .from('avatars')
-          .getPublicUrl(p.photo_reference_url);
+          .getPublicUrl(p.avatar_url);
         if (!urlErr && publicUrl) setAvatarUrl(publicUrl);
       }
 
