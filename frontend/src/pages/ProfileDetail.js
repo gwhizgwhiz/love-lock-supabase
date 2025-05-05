@@ -38,7 +38,7 @@ export default function ProfileDetail() {
           positive_pct,
           last_interaction
         `)
-        .eq('slug', slug)
+        .eq('slug', slug.toLowerCase())
         .single();
 
       if (pErr || !p) {

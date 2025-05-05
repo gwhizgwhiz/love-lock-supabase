@@ -31,7 +31,7 @@ export default function ProfilesPage() {
             const { data: urlData, error: urlErr } = supabase
               .storage
               .from('avatars')
-              .getPublicUrl(p.photo_reference_url)
+              .getPublicUrl(p.avatar_url)
             if (!urlErr && urlData?.publicUrl) publicUrl = urlData.publicUrl
           }
           return { ...p, avatar_url: publicUrl }
