@@ -1,0 +1,10 @@
+# supabase/config.toml — minimal v2+ format
+
+# 1. Your project ref (from your Supabase URL)
+project_ref       = "crlemvoabxplrioytnuv"
+
+# 2. Where your migration .sql files live
+migrations_folder = "supabase/migrations"
+
+# 3. How the CLI should connect to your local Postgres
+db_url            = "postgresql://postgres:postgres@localhost:54322/postgres"

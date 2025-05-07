@@ -2,7 +2,7 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "crlemvoabxplrioytnuv"
+project_id = "love-lock-supabase"
 
 [api]
 enabled = true
@@ -30,14 +30,6 @@ shadow_port = 54320
 # server_version;` on the remote database to check.
 major_version = 15
 
-[db.settings]
-# how migrations, pull/push, etc. connect to your local Postgres
-host     = "localhost"
-port     = 54322
-user     = "postgres"
-password = "postgres"
-database = "postgres"
-
 [db.pooler]
 enabled = false
 # Port to use for the local connection pooler.
@@ -55,7 +47,8 @@ max_client_conn = 100
 
 [db.migrations]
 # Specifies an ordered list of schema files that describe your database.
-schema_paths = ["supabase/migrations"]
+# Supports glob patterns relative to supabase directory: "./schemas/*.sql"
+schema_paths = []
 
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.

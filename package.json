@@ -3,23 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "concurrently \"npx supabase start\" \"npm run start:frontend\"",
-    "start:frontend": "cd frontend && npm install && npm start",
-    "build": "npm run build:frontend",
-    "build:frontend": "cd frontend && npm install && npm run build",
-    "migrate:push": "npx supabase db push",
-    "migrate:status": "npx supabase db status",
-    "supabase:login": "npx supabase login"
+    "start":           "concurrently \"npx supabase start\" \"npm run start:frontend\"",
+    "start:frontend":  "cd frontend && npm install && npm start",
+    "build":           "npm run build:frontend",
+    "build:frontend":  "cd frontend && npm install && npm run build",
+    "migrate:push":    "npx supabase db push",
+    "migrate:status":  "npx supabase db status",
+    "supabase:login":  "npx supabase login"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.27.1",
-    "@babel/preset-react": "^7.27.1",
-    "@babel/preset-typescript": "^7.27.1",
     "concurrently": "^9.1.2",
-    "eslint-plugin-prettier": "^5.3.1",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-unused-imports": "^4.1.4",
-    "prettier": "^3.5.3",
     "supabase": ">=1.8.1"
   }
 }
