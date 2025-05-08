@@ -28,6 +28,8 @@ import Thread from './pages/Thread'
 import AddExperience from './components/AddExperience'
 import Settings from './pages/Settings'
 import Preferences from './pages/Preferences'
+import MyCirclesPage   from './pages/MyCirclesPage'
+import CircleDetailPage from './pages/CircleDetailPage';
 
 import Loading from './components/Loading'  // ← your loading component
 
@@ -73,6 +75,9 @@ export default function App() {
             <Route path="/profiles/:slug" element={<ProfileDetail />} />
             <Route path="/profile/edit" element={<ProfileEdit />} />
 
+            <Route path="/my-circles"     element={<MyCirclesPage />} />
+            <Route path="/circles/:circleId" element={<CircleDetailPage />} />
+
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/compose" element={<Compose />} />
             <Route path="/threads" element={<Navigate to="/inbox" replace />} />
@@ -81,6 +86,7 @@ export default function App() {
             <Route path="/add-experience" element={<AddExperience />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/preferences" element={<Preferences />} />
+            
 
             <Route element={<RequireAdmin />}>
               <Route path="/admin/criteria" element={<RatingCriteriaAdmin />} />
