@@ -50,6 +50,10 @@ export default function Header() {
               Rate a Date
             </button>
 
+            <button className="btn-outline btn-small" onClick={() => navigate('/my-circles')}>
+              My Circles
+            </button>
+
             <AvatarMenu
               avatarUrl={avatarUrl}
               profileSlug={slug}
