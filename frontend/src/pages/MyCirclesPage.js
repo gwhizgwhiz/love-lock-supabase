@@ -18,7 +18,7 @@ export default function MyCirclesPage() {
       <ul>
       {circles.map(c => (
           <li key={c.id}>
-            <Link to={`/circles/${c.id}`}>
+            <Link to={`/circles/${c.slug}`}>
               {c.icon} <strong>{c.name}</strong> — {c.city}, {c.state} ({c.zip})
             </Link>
           </li>

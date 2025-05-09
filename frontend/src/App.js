@@ -76,7 +76,7 @@ export default function App() {
             <Route path="/profile/edit" element={<ProfileEdit />} />
 
             <Route path="/my-circles"     element={<MyCirclesPage />} />
-            <Route path="/circles/:circleId" element={<CircleDetailPage />} />
+            <Route path="/circles/:slug" element={<CircleDetailPage />} />
 
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/compose" element={<Compose />} />
