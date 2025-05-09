@@ -1,6 +1,5 @@
 // src/components/CircleForm.jsx
 import React, { useState } from 'react';
-import { supabase } from '../supabaseClient';
 import { CircleService } from '../lib/circles';
 
 export default function CircleForm({ onCreated }) {
@@ -17,7 +16,7 @@ export default function CircleForm({ onCreated }) {
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await CircleService.createCircle(form);
+    const { error } = await CircleService.createCircle(form);
     setLoading(false);
     if (error) setError(error);
     else {
