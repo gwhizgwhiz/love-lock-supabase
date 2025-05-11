@@ -18,6 +18,7 @@ export const CircleService = {
   joinCircle: (circleId) =>
     supabase.rpc('join_circle', { _circle_id: circleId }),
 
+  // Manage membership: approve, reject, remove, etc.
   manageMember: ({ circleId, userId, status, role }) =>
     supabase.rpc('manage_circle_member', {
       _circle_id: circleId,
@@ -25,6 +26,10 @@ export const CircleService = {
       _status:    status,
       _role:      role,
     }),
+
+  // Invite a new member by email
+  inviteToCircle: (circleId, email) =>
+    supabase.rpc('invite_to_circle', { _circle_id: circleId, _email: email }),
 
   getMyCircles: (userId) =>
     supabase.rpc('get_user_circles', { _user_id: userId }),

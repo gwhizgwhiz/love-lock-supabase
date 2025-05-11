@@ -1,9 +1,26 @@
-// src/pages/ProfileEdit.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import defaultAvatar from '../assets/default-avatar.png';
 import '../App.css';
+
+const MIN_AGE = 18;
+const MAX_AGE = 120;
+const GENDER_OPTIONS = [
+  'Male',
+  'Female',
+  'Non-binary',
+  'Prefer not to say',
+  'Other',
+];
+const DATING_PREFERENCE_OPTIONS = [
+  'Men',
+  'Women',
+  'Non-binary',
+  'Everyone',
+  'Prefer not to say',
+  'Other',
+];
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
@@ -20,6 +37,7 @@ export default function ProfileEdit() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipcode, setZipcode] = useState('');
+  const [zipSuggestions, setZipSuggestions] = useState([]);
   const [age, setAge] = useState('');
   const [genderIdentity, setGenderIdentity] = useState('');
   const [datingPreference, setDatingPreference] = useState('');
@@ -56,7 +74,7 @@ export default function ProfileEdit() {
         setCity(data.city || '');
         setState(data.state || '');
         setZipcode(data.zipcode || '');
-        setAge(data.age || '');
+        setAge(data.age != null ? data.age.toString() : '');
         setGenderIdentity(data.gender_identity || '');
         setDatingPreference(data.dating_preference || '');
 
@@ -74,7 +92,8 @@ export default function ProfileEdit() {
     })();
   }, [navigate]);
 
-  const slugify = v => v.toString().toLowerCase().trim().replace(/[\s\W-]+/g, '-');
+  const slugify = v =>
+    v.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
 
   const handleAliasChange = e => {
     const v = e.target.value;
@@ -100,6 +119,28 @@ export default function ProfileEdit() {
     setAvatarUrl(publicUrl);
   };
 
+  const handleZipcodeChange = async e => {
+    const val = e.target.value;
+    setZipcode(val);
+    if (val.length >= 3) {
+      const { data } = await supabase
+        .from('zipcodes')
+        .select('zipcode, city, state')
+        .ilike('zipcode', `${val}%`)
+        .limit(10);
+      setZipSuggestions(data || []);
+    } else {
+      setZipSuggestions([]);
+    }
+  };
+
+  const selectZipcode = ({ zipcode, city: c, state: s }) => {
+    setZipcode(zipcode);
+    setCity(c);
+    setState(s);
+    setZipSuggestions([]);
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setSaving(true);
@@ -115,10 +156,10 @@ export default function ProfileEdit() {
       city,
       state,
       zipcode,
-      age,
+      age: age === '' ? null : parseInt(age, 10),
       gender_identity: genderIdentity,
       dating_preference: datingPreference,
-      photo_reference_url: photoKey
+      photo_reference_url: photoKey,
     };
 
     try {
@@ -154,19 +195,125 @@ export default function ProfileEdit() {
       {error && <p className="error">{error}</p>}
 
       <form className="form" onSubmit={handleSubmit}>
-        <label>Display Name<input type="text" value={mainAlias} onChange={handleAliasChange} required /></label>
-        <label>Slug (URL)<input type="text" value={slug} readOnly required /></label>
-        <label>First Name<input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} /></label>
-        <label>Last Name<input type="text" value={lastName} onChange={e => setLastName(e.target.value)} /></label>
-        <label>City<input type="text" value={city} onChange={e => setCity(e.target.value)} /></label>
-        <label>State<input type="text" value={state} onChange={e => setState(e.target.value)} /></label>
-        <label>Zipcode<input type="text" value={zipcode} onChange={e => setZipcode(e.target.value)} /></label>
-        <label>Age<input type="number" value={age} onChange={e => setAge(e.target.value)} /></label>
-        <label>Gender Identity<input type="text" value={genderIdentity} onChange={e => setGenderIdentity(e.target.value)} /></label>
-        <label>Dating Preference<input type="text" value={datingPreference} onChange={e => setDatingPreference(e.target.value)} /></label>
+        <label>
+          Display Name
+          <input
+            type="text"
+            value={mainAlias}
+            onChange={handleAliasChange}
+            required
+          />
+        </label>
 
-        <label>Photo<input type="file" accept="image/*" onChange={handleFile} /></label>
-        <img src={avatarUrl} alt="avatar preview" className="avatar-preview" />
+        <label>
+          Slug (URL)
+          <input type="text" value={slug} readOnly required />
+        </label>
+
+        <label>
+          First Name
+          <input
+            type="text"
+            value={firstName}
+            onChange={e => setFirstName(e.target.value)}
+          />
+        </label>
+
+        <label>
+          Last Name
+          <input
+            type="text"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+          />
+        </label>
+
+        <label>
+          Age
+          <select
+            value={age}
+            onChange={e => setAge(e.target.value)}
+            required
+          >
+            <option value="">Select age</option>
+            {Array.from(
+              { length: MAX_AGE - MIN_AGE + 1 },
+              (_, i) => MIN_AGE + i
+            ).map(a => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Gender Identity
+          <select
+            value={genderIdentity}
+            onChange={e => setGenderIdentity(e.target.value)}
+            required
+          >
+            <option value="">Select gender</option>
+            {GENDER_OPTIONS.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Dating Preference
+          <select
+            value={datingPreference}
+            onChange={e => setDatingPreference(e.target.value)}
+          >
+            <option value="">Select preference</option>
+            {DATING_PREFERENCE_OPTIONS.map(dp => (
+              <option key={dp} value={dp}>{dp}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Zip Code
+          <input
+            type="text"
+            value={zipcode}
+            onChange={handleZipcodeChange}
+            placeholder="Start typing zip…"
+            required
+          />
+          {zipSuggestions.length > 0 && (
+            <ul className="zip-suggestions">
+              {zipSuggestions.map(z => (
+                <li
+                  key={z.zipcode}
+                  onClick={() => selectZipcode(z)}
+                >
+                  {z.zipcode} – {z.city}, {z.state}
+                </li>
+              ))}
+            </ul>
+          )}
+        </label>
+
+        <label>
+          City
+          <input type="text" value={city} readOnly disabled />
+        </label>
+
+        <label>
+          State
+          <input type="text" value={state} readOnly disabled />
+        </label>
+
+        <label>
+          Photo
+          <input type="file" accept="image/*" onChange={handleFile} />
+        </label>
+        <img
+          src={avatarUrl}
+          alt="avatar preview"
+          className="avatar-preview"
+        />
 
         <button type="submit" className="btn" disabled={saving}>
           {saving ? 'Saving…' : 'Save Profile'}

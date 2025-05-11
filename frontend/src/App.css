@@ -35,6 +35,11 @@ a {
   color: inherit;
 }
 
+/* Page headings font */
+/*h1, h2, h3, h4, h5, h6 {
+  font-family: var(--site-title-font);
+}
+
 /* 3. Reusable Container */
 .container {
   max-width: 800px;
@@ -613,4 +618,139 @@ select {
   font-size: 1.50rem;
   font-weight: 700;
   font-family: var(--site-title-font);
+}
+
+/* Circle Detail Header */
+.circle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.circle-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.circle-icon {
+  font-size: 1.5rem;
+}
+
+.circle-detail {
+  padding-bottom: .5rem;
+}
+
+/* Circle Info */
+.circle-info {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* Creator section */
+.circle-creator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.circle-creator-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Members list */
+.member-list {
+  list-style: none;
+  padding: 0;
+  margin-top: .5rem;
+}
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.member-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-remove-button {
+  margin-left: 1rem;
+}
+
+.circle-invite-button {
+  margin-top: 0;
+  background-color: transparent;
+  color: var(--brand-red);
+  border: 2px solid var(--brand-red);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.circle-invite-button:hover {
+  background-color: var(--brand-red);
+  color: white;
+}
+
+.toast {
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+.toast-success {
+  background-color: #e6ffed;
+  color: #05672a;
+}
+.toast-error {
+  background-color: #ffe6e6;
+  color: #9b1c1c;
+}
+
+.invite-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.invite-input {
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #f9f9f9;
+}
+
+.invite-input:focus {
+  outline: none;
+  border-color: var(--brand-red);
+  background: #fff;
+}
+
+.invite-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.invite-suggestion-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.invite-suggestion-item:hover {
+  background: var(--bg-page);
 }
