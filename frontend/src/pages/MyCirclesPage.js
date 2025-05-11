@@ -1,29 +1,37 @@
-// src/pages/MyCirclesPage.jsx
-import React              from 'react';
-import { useMyCircles }   from '../hooks/useCircles';
-import { Link }           from 'react-router-dom';
-import CircleForm         from '../components/CircleForm';
+import React from 'react'
+import { useMyCircles } from '../hooks/useCircles'
+import { useNavigate } from 'react-router-dom'
+import '../App.css'
 
 export default function MyCirclesPage() {
-  const { circles, loading, error, refetch } = useMyCircles();
+  const navigate = useNavigate()
+  const { circles, loading, error } = useMyCircles()
 
-  if (loading) return <p>Loading your circles…</p>;
-  if (error)   return <p>Error: {error.message}</p>;
+  if (loading) return <p>Loading your circles…</p>
+  if (error) return <p>Error: {error.message}</p>
 
   return (
-    <div>
+    <main className="container">
       <h1>My Circles</h1>
-      <CircleForm onCreated={refetch} />
-      <button onClick={refetch}>Refresh</button>
-      <ul>
-      {circles.map(c => (
-          <li key={c.id}>
-            <Link to={`/circles/${c.slug}`}>
-              {c.icon} <strong>{c.name}</strong> — {c.city}, {c.state} ({c.zip})
-            </Link>
-          </li>
+      <button
+        className="btn btn-small btn-outline"
+        onClick={() => navigate('/create-circle')}
+      >
+        Create Circle
+      </button>
+
+      <div className="circle-map">
+        {circles.map(c => (
+          <div
+            key={c.id}
+            className="circle-item jitter"
+            onClick={() => navigate(`/circles/${c.slug}`)}
+          >
+            <span className="circle-icon">{c.icon}</span>
+            <div className="circle-name">{c.name}</div>
+          </div>
         ))}
-      </ul>
-    </div>
-  );
+      </div>
+    </main>
+  )
 }
