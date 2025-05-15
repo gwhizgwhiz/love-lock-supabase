@@ -16,6 +16,7 @@ import VerifyEmail from './pages/VerifyEmail'
 import ResetRequest from './pages/ResetRequest'
 import ResetPassword from './pages/ResetPassword'
 
+import DashboardPage from './pages/DashboardPage'
 import ProfileCreate from './pages/ProfileCreate'
 import ProfilesPage from './pages/ProfilesPage'
 import ProfileDetail from './pages/ProfileDetail'
@@ -26,6 +27,8 @@ import Inbox from './pages/Inbox'
 import Thread from './pages/Thread'
 
 import AddExperience from './components/AddExperience'
+import RateDatePage from './pages/RateDatePage'
+import InteractionsPage from './pages/InteractionsPage'
 import Settings from './pages/Settings'
 import Preferences from './pages/Preferences'
 import MyCirclesPage   from './pages/MyCirclesPage'
@@ -74,7 +77,7 @@ export default function App() {
             <Route path="/create-profile" element={<ProfileCreate />} />
             <Route path="/profiles/:slug" element={<ProfileDetail />} />
             <Route path="/profile/edit" element={<ProfileEdit />} />
-
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/my-circles"     element={<MyCirclesPage />} />
             <Route path="/circles/:slug" element={<CircleDetailPage />} />
 
@@ -84,6 +87,8 @@ export default function App() {
             <Route path="/threads/:threadId" element={<Thread />} />
 
             <Route path="/add-experience" element={<AddExperience />} />
+            <Route path="/rate-date" element={<RateDatePage />} />
+            <Route path="/interactions" element={<InteractionsPage />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/preferences" element={<Preferences />} />
             
