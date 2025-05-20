@@ -1,14 +1,60 @@
 // src/components/AvatarMenu.jsx
 import React, { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import supabase from '../supabaseClient'
 import defaultAvatar from '../assets/default-avatar.png'
 import '../App.css'
 
-export default function AvatarMenu({ avatarUrl, profileSlug, onSignOut }) {
+export default function AvatarMenu({ onSignOut }) {
   const [open, setOpen] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar)
+  const [profileSlug, setProfileSlug] = useState(null)
   const menuRef = useRef(null)
 
-  // Close when clicking outside
+  // Load avatar + slug from POI record
+  useEffect(() => {
+    const loadProfileInfo = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (!user || error) return
+
+      const { data, error: profileErr } = await supabase
+        .from('person_of_interest')
+        .select('photo_reference_url, slug')
+        .eq('created_by', user.id)
+        .limit(1)
+
+      if (profileErr) return
+
+      const profile = data?.[0]
+      if (!profile) return
+
+      // Load avatar if available
+      if (profile.photo_reference_url) {
+        const { data: urlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(profile.photo_reference_url)
+        if (urlData?.publicUrl) {
+          setAvatarUrl(urlData.publicUrl)
+        }
+      }
+
+      // Save slug for profile link
+      if (profile.slug) {
+        setProfileSlug(profile.slug)
+      }
+    }
+
+    loadProfileInfo()
+  }, [])
+
+  const profileLink = profileSlug ? `/profiles/${profileSlug}` : '/profile/edit'
+
+  const menuItems = [
+    { label: 'My Profile',   to: profileLink },
+    { label: 'Settings',     to: '/settings' },
+    { label: 'Preferences',  to: '/preferences' },
+  ]
+
   useEffect(() => {
     const handler = e => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -19,18 +65,6 @@ export default function AvatarMenu({ avatarUrl, profileSlug, onSignOut }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Build your profile URL from the slug
-  const profileLink = profileSlug
-    ? `/profiles/${profileSlug}`
-    : '/profile/edit'
-
-  // Menu entries
-  const menuItems = [
-    { label: 'My Profile',   to: profileLink },
-    { label: 'Settings',     to: '/settings' },
-    { label: 'Preferences',  to: '/preferences' },
-  ]
-
   return (
     <div className="avatar-menu inline-block" ref={menuRef}>
       <button
@@ -40,7 +74,7 @@ export default function AvatarMenu({ avatarUrl, profileSlug, onSignOut }) {
         aria-expanded={open}
       >
         <img
-          src={avatarUrl || defaultAvatar}
+          src={avatarUrl}
           alt="User avatar"
           className="avatar-menu-avatar"
         />

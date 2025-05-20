@@ -32,7 +32,6 @@ export default function useAuth() {
         const { data, error } = await supabase
           .from('current_user_profile_view')
           .select('slug, photo_reference_url')
-          .single()
 
         if (error) {
           console.error('Supabase error fetching profile info:', error)
