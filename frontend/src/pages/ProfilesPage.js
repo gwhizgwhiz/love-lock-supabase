@@ -27,7 +27,7 @@ export default function ProfilesPage() {
     const loadProfiles = async () => {
       setLoading(true)
       const { data, error: dbErr } = await supabase
-        .from('person_of_interest')
+        .from('public_profile_view')
         .select(`
           id,
           created_by,

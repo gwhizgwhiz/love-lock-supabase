@@ -12,20 +12,23 @@ export default function SignUp() {
   const navigate                = useNavigate();
 
   const handleSignUp = async e => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const { data: { user }, error } = await supabase.auth.signUp(
-        { email, password },
-        { redirectTo: `${window.location.origin}/verify-email` }
-      );
-      if (error) throw error;
-      setPhase('verify');
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  e.preventDefault();
+  setError(null);
+  try {
+    const { error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${window.location.origin}/verify-email`
+  }
+});
 
+    if (error) throw error;
+    setPhase('verify');
+  } catch (err) {
+    setError(err.message);
+  }
+};
   if (phase === 'verify') {
     return (
       <div className="login-container signup-page">
