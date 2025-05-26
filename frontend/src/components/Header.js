@@ -17,6 +17,7 @@ export default function Header() {
     await supabase.auth.signOut();
     navigate('/login');
   };
+  
 
   const getButtonClass = (path) => {
     return location.pathname === path ? 'btn-inverse btn-small' : 'btn-outline btn-small';
@@ -25,10 +26,11 @@ export default function Header() {
   return (
     <>
       <header className="header">
-        <Link to="/" className="header-brand">
+        <Link to={user ? '/dashboard' : '/'} className="header-brand">
           <img src={logo} alt="LoveLock" className="logo" />
           <span className="site-name">LoveLock</span>
         </Link>
+
 
         <div className="header-right">
           {!user ? (

@@ -19,7 +19,7 @@ export default function SignUp() {
   email,
   password,
   options: {
-    emailRedirectTo: `${window.location.origin}/verify-email`
+    redirectTo: `${window.location.origin}/verify-email`
   }
 });
 
@@ -56,6 +56,7 @@ export default function SignUp() {
             <label>Email:</label>
             <input
               type="email"
+              autoComplete="email"
               className="input-field"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -66,6 +67,7 @@ export default function SignUp() {
             <label>Password:</label>
             <input
               type="password"
+              autoComplete="new-password"  // or "current-password" if for login
               className="input-field"
               value={password}
               onChange={e => setPassword(e.target.value)}

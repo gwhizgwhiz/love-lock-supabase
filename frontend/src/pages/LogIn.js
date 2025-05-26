@@ -23,7 +23,7 @@ export default function LogIn() {
         navigate('/verify-email');
         return;
       }
-      navigate('/'); // go to HomePage
+      navigate('/dashboard'); // go to HomePage
     } catch (err) {
       setError(err.message);
     }

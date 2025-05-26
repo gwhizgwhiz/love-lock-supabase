@@ -12,6 +12,8 @@ export default function ProfilesPage() {
   const [search, setSearch]         = useState('')
   const [showPublic, setShowPublic] = useState(false)
   const [userId, setUserId]         = useState(null)
+  const [filterUserProfiles, setFilterUserProfiles] = useState(false);
+
 
   // 1. Get current user
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function ProfilesPage() {
   // Not logged in — only show public/shareable
   if (!userId) return p.is_shareable || p.visibility === 'public'
 
+  if (filterUserProfiles && !p.is_user_profile) return false;
   // Logged in — toggle determines filter
   return showPublic
     ? p.is_shareable || p.visibility === 'public'
@@ -103,6 +106,14 @@ export default function ProfilesPage() {
           />{' '}
           Show public profiles
         </label> )}
+        {userId && (<label style={{ marginLeft: '1rem' }}>
+          <input
+            type="checkbox"
+            checked={filterUserProfiles}
+            onChange={() => setFilterUserProfiles(prev => !prev)}
+          />{' '}
+          Show only registered user profiles
+        </label> )}
         <input
           className="search-input"
           type="text"
@@ -128,7 +139,12 @@ export default function ProfilesPage() {
                 alt={p.main_alias}
                 className="profile-avatar"
               />
-              <h3>{p.main_alias}</h3>
+              <h3>
+                {p.main_alias}
+                {p.is_user_profile && p.created_by === userId && (
+                  <span className="badge">This is you</span>
+                )}
+              </h3>
               <div className="trust-score">
                 {'❤️'.repeat(Math.max(0, Math.min(5, Math.round(p.trust_score || 0))))}
                 <span className="score-number">

@@ -794,3 +794,13 @@ select {
 .circle-item.jitter {
   animation: jitter 0.6s ease-in-out 1;
 }
+
+.badge {
+  background-color: #ffd700; /* Gold */
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.2rem 0.5rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+}

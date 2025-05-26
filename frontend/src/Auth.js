@@ -1,38 +1,49 @@
 import React, { useState } from 'react';
-import { supabase } from './supabaseClient';
+import { useNavigate } from 'react-router-dom'; // optional for navigation
+import supabase from './supabaseClient';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate(); // optional for redirects
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const { user, error } = await supabase.auth.signIn({ email, password });
+    setError('');
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (error) {
       setError(error.message);
     } else {
-      console.log('Logged in as:', user.email);
-      // Redirect or update the UI to show the logged-in state
+      console.log('Logged in as:', data.user.email);
+      // Example redirect after login
+      navigate('/dashboard'); // Or your own route
     }
   };
 
   return (
     <div>
       <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleLogin} autoComplete="off">
         <input
           type="email"
           placeholder="Email"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
           type="password"
           placeholder="Password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <button type="submit">Login</button>
       </form>
