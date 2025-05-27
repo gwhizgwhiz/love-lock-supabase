@@ -42,8 +42,9 @@ export default function ProfileEdit() {
       }
 
       const { data, error } = await supabase
-        .from('current_user_profile_view')
-        .select('*')
+        .from('profiles')
+        .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, dating_preference, city, state, zip')
+        .eq('user_id', user.id) // assuming you have `user` context in scope
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -65,12 +66,12 @@ export default function ProfileEdit() {
         setGenderIdentity(data.gender_identity || '');
         setDatingPreference(data.dating_preference || '');
 
-        if (data.photo_reference_url) {
-          setPhotoKey(data.photo_reference_url);
+        if (data.avatar_url) {
+          setPhotoKey(data.avatar_url);
           const { data: { publicUrl } } = supabase
             .storage
             .from('avatars')
-            .getPublicUrl(data.photo_reference_url);
+            .getPublicUrl(data.avatar_url);
           setAvatarUrl(publicUrl || defaultAvatar);
         }
       }
@@ -142,7 +143,7 @@ export default function ProfileEdit() {
         age: age === '' ? null : parseInt(age, 10),
         gender_identity: genderIdentity,
         dating_preference: datingPreference,
-        photo_reference_url: photoKey,
+        avatar_url: photoKey,
       };
 
       if (profile?.poi_id) {

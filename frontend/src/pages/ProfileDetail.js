@@ -1,188 +1,91 @@
-// src/pages/ProfileDetail.js
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import useCurrentUser from '../hooks/useCurrentUser'; // Consistent user hook     
 import supabase from '../supabaseClient';
-import defaultAvatar from '../assets/default-avatar.png';
-import '../App.css';
+import '../App.css'; // Ensure CSS is applied
 
-export default function ProfileDetail() {
-  const { slug } = useParams();
-  const [userId, setUserId] = useState(null);
+export default function ProfileDetailPage() {
+  const { userId } = useCurrentUser();
+  const { id } = useParams();
   const [profile, setProfile] = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
-  const [interactions, setInteractions] = useState([]);
-  const [breakdown, setBreakdown] = useState([]);
-  const [createdBy, setCreatedBy] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  // Get the current userId on mount
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (user && !error) setUserId(user.id);
-    };
-    fetchUser();
-  }, []);
-
-  // Load profile details
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-
-      const { data: p, error: pErr } = await supabase
-        .from('public_profile_enriched_view')
-        .select(`
-          poi_id,
-          slug,
-          main_alias,
-          city,
-          state,
-          zipcode,
-          avatar_url,
-          trust_score,
-          trust_badge,
-          is_shareable,
-          total_interactions,
-          positive_pct,
-          last_interaction
-        `)
-        .eq('slug', slug.toLowerCase())
-        .single();
-
-      if (pErr || !p) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
-      if (p.avatar_url) {
-        const { data: { publicUrl }, error: urlErr } = supabase
-          .storage
-          .from('avatars')
-          .getPublicUrl(p.avatar_url);
-        if (!urlErr && publicUrl) setAvatarUrl(publicUrl);
-      }
-
-      const { data: ints = [] } = await supabase
-        .from('public_interactions_view')
-        .select('id, interaction_type, occurred_at, outcome_rating')
-        .eq('person_id', p.poi_id)
-        .order('occurred_at', { ascending: false })
-        .limit(10);
-
-      const { data: poiRow, error: poiErr } = await supabase
-        .from('person_of_interest')
-        .select('created_by')
-        .eq('id', p.poi_id)
-        .single();
-      if (!poiErr && poiRow) setCreatedBy(poiRow.created_by);
-
-      let bd = [];
-      try {
-        const { data: rpcData = [] } = await supabase
-          .rpc('get_criteria_breakdown', { _person_id: p.poi_id });
-        bd = rpcData;
-      } catch { bd = []; }
-
-      setProfile(p);
-      setInteractions(ints);
-      setBreakdown(bd);
+    if (!id) {
+      setError('Missing profile ID.');
       setLoading(false);
+      return;
     }
 
-    load();
-  }, [slug]);
+    const fetchProfile = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          username,
+          location,
+          gender_identity,
+          dating_preference,
+          avatar_url,
+          is_public
+        `)
+        .eq('id', id)
+        .single();
 
-  if (loading) return <div className="spinner">Loading…</div>;
-  if (notFound) return <p className="empty-state">Profile not found.</p>;
+      if (error || !data) {
+        setError('Profile not found or is private.');
+      } else {
+        setProfile(data);
+      }
+      setLoading(false);
+    };
 
-  const isOwner = userId === createdBy;
-  const hearts = Math.max(0, Math.round(profile.trust_score || 0));
+    fetchProfile();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="container">
+        <h2>Loading Profile...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container">
+        <h2>Error</h2>
+        <p className="error">{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="detail-container">
-      <section className="hero" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: '#FCEAEA',
-        padding: '1.5rem',
-        borderRadius: '0.5rem',
-        marginBottom: '2rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img
-            src={avatarUrl}
-            alt={profile.main_alias}
-            style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              marginRight: '1rem'
-            }}
-            className="hero-avatar"
-          />
-          <div className="hero-info">
-            <h1>{profile.main_alias}</h1>
-            <div className="trust-badge">
-              {'❤️'.repeat(hearts)}
-              <span className="score-number">
-                {(profile.trust_score || 0).toFixed(1)}
-              </span>
-            </div>
-            <div className="hero-stats">
-              <span>{profile.total_interactions} interactions</span>
-              <span>{Math.round(profile.positive_pct)}% positive</span>
-              <span>
-                Last: {new Date(profile.last_interaction).toLocaleDateString()}
-              </span>
-              <span>{profile.city}, {profile.state}</span>
-            </div>
-          </div>
+    <div className="container">
+      <div className="hero">
+        <img
+          src={profile.avatar_url || '/default-avatar.png'}
+          alt={profile.username || 'User'}
+          className="hero-avatar"
+        />
+        <div className="hero-info">
+          <h1>{profile.username}</h1>
+          {profile.location && <p>📍 {profile.location}</p>}
+          {profile.gender_identity && <p>Gender: {profile.gender_identity}</p>}
+          {profile.dating_preference && <p>Looking for: {profile.dating_preference}</p>}
+          <p>Status: {profile.is_public ? 'Public' : 'Private'}</p>
         </div>
+      </div>
 
-        {isOwner && (
-          <div>
-            <Link to="/profile/edit">
-              <button className="btn" style={{ whiteSpace: 'nowrap' }}>
-                Edit Profile
-              </button>
-            </Link>
-          </div>
-        )}
-      </section>
+      <div className="chart-placeholder">
+        Trust Score / Future Stats
+      </div>
 
-      <section className="breakdown">
-        <h2>Criteria Breakdown</h2>
-        {breakdown.length > 0 ? (
-          <div className="chart-placeholder">Chart goes here</div>
-        ) : (
-          <p>No breakdown data.</p>
-        )}
-      </section>
-
-      <section className="timeline">
-        <h2>Recent Interactions</h2>
-        {interactions.length > 0 ? (
-          <ul>
-            {interactions.map(i => (
-              <li key={i.id} className={`item ${i.outcome_rating}`}>
-                <span className="type">
-                  {i.interaction_type.replace('_', ' ')}
-                </span>
-                <span className="time">
-                  {new Date(i.occurred_at).toLocaleString()}
-                </span>
-                <span className="outcome">{i.outcome_rating}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="empty-state">No interactions logged yet.</p>
-        )}
-      </section>
+      <button className="btn" onClick={() => navigate(-1)}>
+        ← Back
+      </button>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// useRequireProfile.js
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuth from './useAuth';
@@ -14,9 +13,9 @@ export default function useRequireProfile() {
       if (!user) return; // Already handled by RequireAuth
 
       const { data, error } = await supabase
-        .from('person_of_interest')
-        .select('id')
-        .eq('id', user.id)
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', user.id)
         .single();
 
       if (error || !data) {

@@ -2,9 +2,12 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import supabase from '../supabaseClient'
+import useAuth from '../hooks/useAuth'
+
 import '../App.css'
 
 export default function Inbox() {
+  const { user } = useAuth()
   const [threads, setThreads] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -15,37 +18,78 @@ export default function Inbox() {
       setLoading(true)
       setError(null)
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (!user || userError) {
-        setError('Unable to load user session.')
+      if (!user) {
+        setError('No authenticated user.')
         setLoading(false)
         return
       }
 
-      const { data, error: inboxError } = await supabase
-        .from('inbox_with_profile_view')
-        .select(`
-          thread_id,
-          unread_count,
-          last_message_at,
-          other_user_id,
-          other_user_name,
-          other_user_slug,
-          other_user_avatar_url
-        `)
-        .order('last_message_at', { ascending: false })
+      try {
+        // Fetch threads where the user is a participant
+        const { data: threadsData, error: threadsError } = await supabase
+          .from('message_threads')
+          .select(`
+            id,
+            user_one,
+            user_two,
+            last_message_at
+          `)
+          .or(`user_one.eq.${user.id},user_two.eq.${user.id}`)
+          .order('last_message_at', { ascending: false })
 
-      if (inboxError) {
-        console.error('Inbox load error:', inboxError)
+        if (threadsError) throw threadsError
+
+        // Map threads to include other user's profile info
+        const mappedThreads = await Promise.all(
+          (threadsData || []).map(async (thread) => {
+            const otherUserId = thread.user_one === user.id ? thread.user_two : thread.user_one
+
+            // Fetch the other user's profile
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, slug, avatar_url')
+              .eq('user_id', otherUserId)
+              .single()
+
+            if (profileError) {
+              console.warn('Profile fetch error:', profileError)
+              return null
+            }
+
+            // Fetch unread count for this thread
+            const { count, error: countError } = await supabase
+              .from('message')
+              .select('*', { count: 'exact', head: true })
+              .eq('receiver_id', user.id)
+              .eq('message_thread_id', thread.id)
+              .is('read_at', null)
+
+            if (countError) {
+              console.warn('Unread count error:', countError)
+            }
+
+            return {
+              thread_id: thread.id,
+              last_message_at: thread.last_message_at,
+              unread_count: count || 0,
+              other_user_name: `${profile.first_name} ${profile.last_name}`,
+              other_user_slug: profile.slug,
+              other_user_avatar_url: profile.avatar_url || '/default-avatar.png',
+            }
+          })
+        )
+
+        setThreads(mappedThreads.filter(Boolean))
+      } catch (err) {
+        console.error('Inbox load error:', err)
         setError('Could not load your inbox.')
-      } else {
-        setThreads(data)
       }
+
       setLoading(false)
     }
 
     fetchInbox()
-  }, [])
+  }, [user])
 
   const filteredThreads = threads.filter(t =>
     t.other_user_name.toLowerCase().includes(searchInput.toLowerCase()) ||
@@ -58,18 +102,8 @@ export default function Inbox() {
   return (
     <div className="inbox-container">
       <div className="inbox-card">
-        {/* Header Bar */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '1.5rem',
-            gap: '1rem',
-          }}
-        >
-          <Link to="/compose" className="btn">
-            New Message
-          </Link>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
+          <Link to="/compose" className="btn">New Message</Link>
           <input
             type="text"
             placeholder="Search messages…"
@@ -80,65 +114,35 @@ export default function Inbox() {
           />
         </div>
 
-        {/* Empty State */}
         {filteredThreads.length === 0 && (
           <div className="empty-state">No conversations yet.</div>
         )}
 
-        {/* Thread List */}
         {filteredThreads.length > 0 && (
           <ul className="message-list">
             {filteredThreads.map(t => (
               <li key={t.thread_id} className="message-item">
-                <Link
-                  to={`/threads/${t.thread_id}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
-                >
+                <Link to={`/threads/${t.thread_id}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
                   <img
-                    src={t.other_user_avatar_url || '/default-avatar.png'}
+                    src={t.other_user_avatar_url}
                     alt={`${t.other_user_name} avatar`}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      marginRight: '0.75rem',
-                    }}
+                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', marginRight: '0.75rem' }}
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <strong>{t.other_user_name}</strong>
                       {t.unread_count > 0 && (
-                        <span
-                          style={{
-                            marginLeft: '0.5rem',
-                            background: 'var(--brand-red)',
-                            color: 'white',
-                            borderRadius: '1em',
-                            padding: '0 .5em',
-                            fontSize: '0.8em',
-                          }}
-                        >
+                        <span style={{ marginLeft: '0.5rem', background: 'var(--brand-red)', color: 'white', borderRadius: '1em', padding: '0 .5em', fontSize: '0.8em' }}>
                           {t.unread_count}
                         </span>
                       )}
                     </div>
                     <div style={{ fontSize: '0.8em', color: '#666' }}>
-                      Last message:{' '}
-                      {new Date(t.last_message_at).toLocaleString()}
+                      Last message: {new Date(t.last_message_at).toLocaleString()}
                     </div>
                   </div>
                 </Link>
-                <Link
-                  to={`/profiles/${t.other_user_slug}`}
-                  style={{ marginLeft: '1rem' }}
-                  title="View profile"
-                >
+                <Link to={`/profiles/${t.other_user_slug}`} style={{ marginLeft: '1rem' }} title="View profile">
                   View Profile
                 </Link>
               </li>

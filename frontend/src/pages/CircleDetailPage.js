@@ -36,8 +36,8 @@ export default function CircleDetailPage() {
         const { data, error } = await CircleService.getCircleBySlug(slug);
         if (error) throw error;
         const row = data?.[0] || null;
-        if (row && row.creator_photo_reference_url) {
-          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(row.creator_photo_reference_url);
+        if (row && row.creator_avatar_url) {
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(row.creator_avatar_url);
           row.creator_avatar_url = urlData?.publicUrl || defaultAvatar;
         }
         setCircle(row);
@@ -57,8 +57,8 @@ export default function CircleDetailPage() {
         if (error) throw error;
         const enriched = (data || []).map(m => {
           let avatar = defaultAvatar;
-          if (m.photo_reference_url) {
-            const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(m.photo_reference_url);
+          if (m.avatar_url) {
+            const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(m.avatar_url);
             avatar = urlData?.publicUrl || defaultAvatar;
           }
           return { ...m, avatar_url: avatar };

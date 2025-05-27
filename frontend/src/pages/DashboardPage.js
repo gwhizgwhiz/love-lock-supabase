@@ -1,143 +1,117 @@
-// src/pages/DashboardPage.jsx
-
+// src/pages/DashboardPage.js
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import supabase from '../supabaseClient'
 import useCurrentUser from '../hooks/useCurrentUser'
+import defaultAvatar from '../assets/default-avatar.png'
 import '../App.css'
 
 export default function DashboardPage() {
-  const { userId, loading: authLoading, error: authError, user } = useCurrentUser()
-  const [experiences, setExperiences] = useState([])
+  const { userId, loading: authLoading } = useCurrentUser()
+  const [profile, setProfile] = useState(null)
+  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar)
+  const [circles, setCircles] = useState([])
+  const [inboxCount, setInboxCount] = useState(0)
+  const [interactions, setInteractions] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
-  console.log('🧭 DashboardPage Rendered')
-  console.log('✅ userId:', userId)
-  console.log('✅ authLoading:', authLoading)
-  console.log('✅ authError:', authError)
-  console.log('✅ user:', user)
-
   useEffect(() => {
-    if (authLoading) {
-      console.log('⏳ Auth still loading...')
-      return
-    }
+    if (authLoading || !userId) return
 
-    if (!userId) {
-      console.log('❌ No userId found—skipping data fetch.')
-      setError('No user session found.')
-      setLoading(false)
-      return
-    }
+    const loadDashboard = async () => {
+      setLoading(true)
+      try {
+        // Profile
+        const { data: prof, error: profErr } = await supabase
+          .from('profiles')
+          .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, dating_preference, city, state, zip, is_public')
+          .eq('user_id', userId)
+          .single()
+        if (profErr) throw profErr
+        setProfile(prof)
+        setAvatarUrl(prof.avatar_url || defaultAvatar)
 
-    const fetchData = async () => {
-      console.log('🚀 Fetching experiences for userId:', userId)
+        // Circles
+        const { data: circ, error: circErr } = await supabase
+          .from('circle_members')
+          .select('circle_id, role, circles(name, created_by)')
+          .eq('user_id', userId)
+        if (circErr) throw circErr
+        setCircles(circ)
 
-      const { data, error } = await supabase
-        .from('person_experiences')
-        .select(`
-          id,
-          created_at,
-          date_of_experience,
-          profile_match_vote,
-          what_went_right,
-          what_went_wrong,
-          screenshot_url,
-          person_of_interest (
-            main_alias,
-            slug
-          )
-        `)
-        .eq('created_by', userId) // 🩹 Fixed: was reporter_id, now created_by
-        .order('created_at', { ascending: false })
+        // Interactions
+        const { data: inter, error: interErr } = await supabase
+          .from('interactions')
+          .select('id, date_of_experience, what_went_right, what_went_wrong, profile_match_vote, person_of_interest(main_alias)')
+          .eq('reporter_id', userId)
+          .order('created_at', { ascending: false })
+        if (interErr) throw interErr
+        setInteractions(inter)
 
-      if (error) {
-        console.error('❌ Supabase error:', error)
-        setError(error.message || 'An error occurred.')
-      } else {
-        console.log('✅ Data fetched:', data)
-        setExperiences(data)
+        // Inbox placeholder
+        setInboxCount(0)
+      } catch (err) {
+        console.error('Dashboard load error:', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
+    loadDashboard()
+  }, [authLoading, userId])
 
-    fetchData()
-  }, [userId, authLoading])
-
-  const handleNewInteraction = () => {
-    navigate('/rate-date')
-  }
-
-  if (authLoading || loading) {
-    return (
-      <div className="container">
-        <h2>Dashboard Loading...</h2>
-        <p>authLoading: {authLoading ? 'true' : 'false'}</p>
-        <p>loading: {loading ? 'true' : 'false'}</p>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="container">
-        <h2>Error</h2>
-        <p className="error">{error}</p>
-      </div>
-    )
-  }
+  if (authLoading || loading) return <div className="spinner">Loading…</div>
 
   return (
     <div className="container">
-      <h2>Dashboard Page Rendered</h2>
-      <p>userId: {userId || 'null'}</p>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>My Logged Experiences</h2>
-        <button className="btn" onClick={handleNewInteraction}>
-          ➕ Log New Interaction
-        </button>
-      </div>
-
-      {experiences.length === 0 ? (
-        <p>You haven’t logged any interactions yet. Click the button above to get started!</p>
-      ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {experiences.map(exp => (
-            <li
-              key={exp.id}
-              className="experience-item"
-              style={{
-                border: '1px solid #eee',
-                marginBottom: '1.5rem',
-                padding: '1rem',
-                borderRadius: '6px'
-              }}
-            >
-              <strong>
-                {exp.person_of_interest?.main_alias || 'Unknown'} —{' '}
-                {exp.date_of_experience || 'Missing Date'}
-              </strong>
-              {exp.profile_match_vote && (
-                <div style={{ margin: '0.5rem 0' }}>
-                  Profile Accuracy: <em>{exp.profile_match_vote}</em>
-                </div>
-              )}
-              {exp.what_went_right && <div>✅ {exp.what_went_right}</div>}
-              {exp.what_went_wrong && <div>❌ {exp.what_went_wrong}</div>}
-              {exp.screenshot_url && (
-                <div>
-                  <a href={exp.screenshot_url} target="_blank" rel="noreferrer">
-                    View Screenshot
-                  </a>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      <h2>Welcome Back!</h2>
+      <section className="profile-summary">
+        <h3>Your Profile</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <img src={avatarUrl} alt="Avatar" className="avatar-menu-avatar" />
+          <div>
+            <p><strong>Name:</strong> {profile?.name || 'Not set'}</p>
+            <p><strong>Location:</strong> {profile?.city || ''}, {profile?.state || ''}</p>
+            <p><strong>Gender:</strong> {profile?.gender_identity || 'Not set'}</p>
+            <p><strong>Preferences:</strong> {profile?.dating_preference || 'Not set'}</p>
+          </div>
+        </div>
+        {!profile?.id && <button className="btn-small" onClick={() => navigate('/profile/edit')}>Set Up Your Profile</button>}
+      </section>
+      <section className="circles-summary" style={{ marginTop: '2rem' }}>
+        <h3>Your Circles</h3>
+        {circles.length === 0 ? (
+          <p>You haven’t joined any circles yet. <button className="btn-small" onClick={() => navigate('/my-circles')}>Explore Circles</button></p>
+        ) : (
+          <ul className="member-list">
+            {circles.map(c => (
+              <li key={c.circle_id} className="member-item">
+                <span>{c.circles.name}</span>
+                <span className="badge">{c.role === 'moderator' ? 'Moderator' : c.circles.created_by === userId ? 'Creator' : 'Member'}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section className="inbox-summary" style={{ marginTop: '2rem' }}>
+        <h3>Inbox</h3>
+        <p>You have <strong>{inboxCount}</strong> messages. <button className="btn-small" onClick={() => navigate('/inbox')}>Go to Inbox</button></p>
+      </section>
+      <section className="interactions-summary" style={{ marginTop: '2rem' }}>
+        <h3>Your Logged Interactions</h3>
+        {interactions.length === 0 ? (
+          <p>No interactions logged yet. <button className="btn-small" onClick={() => navigate('/rate-date')}>Log One</button></p>
+        ) : (
+          <ul className="timeline">
+            {interactions.map(i => (
+              <li key={i.id}>
+                <span><strong>{i.person_of_interest?.main_alias || 'Unknown'}</strong> ({i.profile_match_vote || 'No vote'})</span>
+                <span>{i.date_of_experience || 'No date'}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }

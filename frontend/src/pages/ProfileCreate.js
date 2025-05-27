@@ -23,9 +23,9 @@ export default function ProfileCreate() {
         return
       }
 
-      // Insert profile into person_of_interest table
+      // Insert profile into profiles table
       const { data: profile, error: insErr } = await supabase
-        .from('person_of_interest')
+        .from('profiles')
         .insert({
           main_alias: slug,
           slug,

@@ -1,3 +1,4 @@
+// src/pages/Thread.jsx
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import supabase from '../supabaseClient'
@@ -6,50 +7,71 @@ import '../App.css'
 export default function Thread() {
   const { threadId } = useParams()
   const [messages, setMessages] = useState([])
-  const [newText, setNewText]   = useState('')
-  const [loading, setLoading]   = useState(true)
+  const [newText, setNewText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [currentUserId, setCurrentUserId] = useState(null)
 
-  // Load history
+  // Get current user ID
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (user && !error) setCurrentUserId(user.id)
+    }
+    getUser()
+  }, [])
+
+  // Load messages
   useEffect(() => {
     if (!threadId) return
-    supabase
-      .from('my_message_history_view')
-      .select('*')
-      .eq('thread_id', threadId)
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (error) console.error(error)
-        else setMessages(data)
-        setLoading(false)
-      })
+    const loadMessages = async () => {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('message')
+        .select('*')
+        .eq('thread_id', threadId)
+        .order('created_at', { ascending: true })
+
+      if (error) console.error('Error fetching messages:', error)
+      else setMessages(data || [])
+      setLoading(false)
+    }
+
+    loadMessages()
   }, [threadId])
 
   // Send a reply
   const sendMessage = async e => {
     e.preventDefault()
-    if (!newText.trim()) return
-    await supabase.rpc('send_message', {
-      p_thread_id: threadId,
-      p_text: newText.trim(),
-    })
-    setNewText('')
-    // refresh
-    const { data } = await supabase
-      .from('my_message_history_view')
-      .select('*')
-      .eq('thread_id', threadId)
-      .order('created_at', { ascending: true })
-    setMessages(data)
+    if (!newText.trim() || !threadId) return
+    const { error } = await supabase
+      .from('message')
+      .insert([{ thread_id: threadId, text: newText.trim(), sender_id: currentUserId }])
+
+    if (error) {
+      console.error('Error sending message:', error)
+    } else {
+      setNewText('')
+      // Refresh
+      const { data } = await supabase
+        .from('message')
+        .select('*')
+        .eq('thread_id', threadId)
+        .order('created_at', { ascending: true })
+      setMessages(data || [])
+    }
   }
 
   // Delete your own message
   const deleteMessage = async id => {
-    await supabase
+    const { error } = await supabase
       .from('message')
       .delete()
       .eq('id', id)
-    // refresh
-    setMessages(prev => prev.filter(m => m.id !== id))
+    if (error) {
+      console.error('Error deleting message:', error)
+    } else {
+      setMessages(prev => prev.filter(m => m.id !== id))
+    }
   }
 
   if (loading) return <div style={{ padding: 16 }}>Loading conversation…</div>
@@ -59,7 +81,7 @@ export default function Thread() {
       <h1>Conversation</h1>
       <div style={{ maxHeight: '60vh', overflowY: 'auto', marginBottom: 16 }}>
         {messages.map(m => {
-          const isOwn = m.sender_id === supabase.auth.getUser().data.user.id
+          const isOwn = m.sender_id === currentUserId
           return (
             <div
               key={m.id}

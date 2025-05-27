@@ -21,8 +21,9 @@ export function ProfileProvider({ children }) {
         }
 
         const { data, error } = await supabase
-          .from('current_user_profile_view')
-          .select('*')
+          .from('profiles')
+          .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, dating_preference, city, state, zip')
+          .eq('user_id', user.id) // assuming you have `user` context in scope
           .single();
 
         if (error && error.code !== 'PGRST116') {

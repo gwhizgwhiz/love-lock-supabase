@@ -11,35 +11,37 @@ export default function AvatarMenu({ onSignOut }) {
   const [profileSlug, setProfileSlug] = useState(null)
   const menuRef = useRef(null)
 
-  // Load avatar + slug from POI record
   useEffect(() => {
     const loadProfileInfo = async () => {
       const { data: { user }, error } = await supabase.auth.getUser()
       if (!user || error) return
 
-      const { data, error: profileErr } = await supabase
-        .from('person_of_interest')
-        .select('photo_reference_url, slug')
-        .eq('created_by', user.id)
-        .limit(1)
+      const { data: profile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('avatar_url, slug')
+        .eq('user_id', user.id)
+        .single()  // single, not limit(1)
 
-      if (profileErr) return
+      if (profileErr) {
+        console.error('Error fetching profile:', profileErr)
+        return
+      }
 
-      const profile = data?.[0]
-      if (!profile) return
+      if (profile?.avatar_url) {
+        const { data: urlData, error: urlError } = supabase
+          .storage
+          .from('avatars')  // Your bucket name
+          .getPublicUrl(profile.avatar_url)
 
-      // Load avatar if available
-      if (profile.photo_reference_url) {
-        const { data: urlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(profile.photo_reference_url)
-        if (urlData?.publicUrl) {
+        if (urlError) {
+          console.error('Error getting avatar URL:', urlError)
+          setAvatarUrl(defaultAvatar)
+        } else if (urlData?.publicUrl) {
           setAvatarUrl(urlData.publicUrl)
         }
       }
 
-      // Save slug for profile link
-      if (profile.slug) {
+      if (profile?.slug) {
         setProfileSlug(profile.slug)
       }
     }
