@@ -6,21 +6,8 @@ import '../App.css';
 
 const MIN_AGE = 18;
 const MAX_AGE = 120;
-const GENDER_OPTIONS = [
-  'Male',
-  'Female',
-  'Non-binary',
-  'Prefer not to say',
-  'Other',
-];
-const DATING_PREFERENCE_OPTIONS = [
-  'Men',
-  'Women',
-  'Non-binary',
-  'Everyone',
-  'Prefer not to say',
-  'Other',
-];
+const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other'];
+const DATING_PREFERENCE_OPTIONS = ['Men', 'Women', 'Non-binary', 'Everyone', 'Prefer not to say', 'Other'];
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
@@ -46,9 +33,9 @@ export default function ProfileEdit() {
 
   useEffect(() => {
     (async () => {
-      setAuthLoading(true);
       const { data: { user }, error: authErr } = await supabase.auth.getUser();
       setAuthLoading(false);
+
       if (authErr || !user) {
         navigate('/login');
         return;
@@ -92,8 +79,7 @@ export default function ProfileEdit() {
     })();
   }, [navigate]);
 
-  const slugify = v =>
-    v.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+  const slugify = v => v.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
 
   const handleAliasChange = e => {
     const v = e.target.value;
@@ -105,16 +91,12 @@ export default function ProfileEdit() {
     const file = e.target.files[0];
     if (!file) return;
     const key = `avatars/${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase
-      .storage.from('avatars')
-      .upload(key, file, { upsert: true });
+    const { error: upErr } = await supabase.storage.from('avatars').upload(key, file, { upsert: true });
     if (upErr) {
       setError(upErr.message);
       return;
     }
-    const { data: { publicUrl } } = supabase
-      .storage.from('avatars')
-      .getPublicUrl(key);
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(key);
     setPhotoKey(key);
     setAvatarUrl(publicUrl);
   };
@@ -146,23 +128,23 @@ export default function ProfileEdit() {
     setSaving(true);
     setError(null);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    const values = {
-      created_by: user.id,
-      main_alias: mainAlias,
-      slug,
-      first_name: firstName,
-      last_name: lastName,
-      city,
-      state,
-      zipcode,
-      age: age === '' ? null : parseInt(age, 10),
-      gender_identity: genderIdentity,
-      dating_preference: datingPreference,
-      photo_reference_url: photoKey,
-    };
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const values = {
+        created_by: user.id,
+        main_alias: mainAlias,
+        slug,
+        first_name: firstName,
+        last_name: lastName,
+        city,
+        state,
+        zipcode,
+        age: age === '' ? null : parseInt(age, 10),
+        gender_identity: genderIdentity,
+        dating_preference: datingPreference,
+        photo_reference_url: photoKey,
+      };
+
       if (profile?.poi_id) {
         const { error: upErr } = await supabase
           .from('person_of_interest')
@@ -177,6 +159,7 @@ export default function ProfileEdit() {
         if (insErr) throw insErr;
         setProfile(newProfile);
       }
+
       navigate(`/profiles/${slug}`);
     } catch (err) {
       setError(err.message);
@@ -197,12 +180,7 @@ export default function ProfileEdit() {
       <form className="form" onSubmit={handleSubmit}>
         <label>
           Display Name
-          <input
-            type="text"
-            value={mainAlias}
-            onChange={handleAliasChange}
-            required
-          />
+          <input type="text" value={mainAlias} onChange={handleAliasChange} required />
         </label>
 
         <label>
@@ -212,34 +190,19 @@ export default function ProfileEdit() {
 
         <label>
           First Name
-          <input
-            type="text"
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-          />
+          <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} />
         </label>
 
         <label>
           Last Name
-          <input
-            type="text"
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-          />
+          <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
         </label>
 
         <label>
           Age
-          <select
-            value={age}
-            onChange={e => setAge(e.target.value)}
-            required
-          >
+          <select value={age} onChange={e => setAge(e.target.value)} required>
             <option value="">Select age</option>
-            {Array.from(
-              { length: MAX_AGE - MIN_AGE + 1 },
-              (_, i) => MIN_AGE + i
-            ).map(a => (
+            {Array.from({ length: MAX_AGE - MIN_AGE + 1 }, (_, i) => MIN_AGE + i).map(a => (
               <option key={a} value={a}>{a}</option>
             ))}
           </select>
@@ -247,11 +210,7 @@ export default function ProfileEdit() {
 
         <label>
           Gender Identity
-          <select
-            value={genderIdentity}
-            onChange={e => setGenderIdentity(e.target.value)}
-            required
-          >
+          <select value={genderIdentity} onChange={e => setGenderIdentity(e.target.value)} required>
             <option value="">Select gender</option>
             {GENDER_OPTIONS.map(g => (
               <option key={g} value={g}>{g}</option>
@@ -261,10 +220,7 @@ export default function ProfileEdit() {
 
         <label>
           Dating Preference
-          <select
-            value={datingPreference}
-            onChange={e => setDatingPreference(e.target.value)}
-          >
+          <select value={datingPreference} onChange={e => setDatingPreference(e.target.value)}>
             <option value="">Select preference</option>
             {DATING_PREFERENCE_OPTIONS.map(dp => (
               <option key={dp} value={dp}>{dp}</option>
@@ -284,10 +240,7 @@ export default function ProfileEdit() {
           {zipSuggestions.length > 0 && (
             <ul className="zip-suggestions">
               {zipSuggestions.map(z => (
-                <li
-                  key={z.zipcode}
-                  onClick={() => selectZipcode(z)}
-                >
+                <li key={z.zipcode} onClick={() => selectZipcode(z)}>
                   {z.zipcode} – {z.city}, {z.state}
                 </li>
               ))}
@@ -309,11 +262,8 @@ export default function ProfileEdit() {
           Photo
           <input type="file" accept="image/*" onChange={handleFile} />
         </label>
-        <img
-          src={avatarUrl}
-          alt="avatar preview"
-          className="avatar-preview"
-        />
+
+        <img src={avatarUrl} alt="avatar preview" className="avatar-preview" />
 
         <button type="submit" className="btn" disabled={saving}>
           {saving ? 'Saving…' : 'Save Profile'}

@@ -2,13 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import useAuth from '../hooks/useAuth';
 import defaultAvatar from '../assets/default-avatar.png';
 import '../App.css';
 
 export default function ProfileDetail() {
   const { slug } = useParams();
-  const { user, loading: authLoading } = useAuth();
+  const [userId, setUserId] = useState(null);
   const [profile, setProfile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
   const [interactions, setInteractions] = useState([]);
@@ -17,6 +16,16 @@ export default function ProfileDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  // Get the current userId on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) setUserId(user.id);
+    };
+    fetchUser();
+  }, []);
+
+  // Load profile details
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -85,10 +94,10 @@ export default function ProfileDetail() {
     load();
   }, [slug]);
 
-  if (loading || authLoading) return <div className="spinner">Loading…</div>;
+  if (loading) return <div className="spinner">Loading…</div>;
   if (notFound) return <p className="empty-state">Profile not found.</p>;
 
-  const isOwner = user?.id === createdBy;
+  const isOwner = userId === createdBy;
   const hearts = Math.max(0, Math.round(profile.trust_score || 0));
 
   return (

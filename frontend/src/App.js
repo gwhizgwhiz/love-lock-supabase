@@ -16,6 +16,7 @@ import VerifyEmail from './pages/VerifyEmail'
 import ResetRequest from './pages/ResetRequest'
 import ResetPassword from './pages/ResetPassword'
 
+import { ProfileProvider } from './context/ProfileProvider';
 import DashboardPage from './pages/DashboardPage'
 import ProfileCreate from './pages/ProfileCreate'
 import ProfilesPage from './pages/ProfilesPage'
@@ -34,7 +35,7 @@ import Preferences from './pages/Preferences'
 import MyCirclesPage   from './pages/MyCirclesPage'
 import CircleDetailPage from './pages/CircleDetailPage';
 
-import Loading from './components/Loading'  // ← your loading component
+import Loading from './components/Loading'  // loading component
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true)
@@ -60,6 +61,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+    <ProfileProvider>
       <Layout>
         <RouteLoader /> {/* <- this shows spinner on page transition */}
         <Routes>
@@ -102,6 +104,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
+    </ProfileProvider>
     </BrowserRouter>
   )
 }

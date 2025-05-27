@@ -2,73 +2,55 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { CircleService } from '../lib/circles';
 import supabase from '../supabaseClient';
+import useAuth from '../hooks/useAuth';
 import defaultAvatar from '../assets/default-avatar.png';
 import '../App.css';
 
-// Simple email regex for validation
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function CircleDetailPage() {
   const { slug } = useParams();
+  const { user } = useAuth();  // Get current user from global context
+  const currentUserId = user?.id;
 
-  // Core state
   const [circle, setCircle] = useState(null);
   const [members, setMembers] = useState([]);
   const [loadingCircle, setLoadingCircle] = useState(true);
   const [loadingMembers, setLoadingMembers] = useState(true);
-  const [errorCircle, setErrorCircle] = useState(null);
-  const [errorMembers, setErrorMembers] = useState(null);
+  const [toast, setToast] = useState({ message: '', type: '' });
 
-  // Auth state
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [isMember, setIsMember] = useState(false);
-  const [isModerator, setIsModerator] = useState(false);
-
-  // Invite/autocomplete state
   const [inviteInput, setInviteInput] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const suggRef = useRef();
 
-  // Toast state
-  const [toast, setToast] = useState({ message: '', type: '' });
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast({ message: '', type: '' }), 3000);
   };
 
-  // Load circle details
   useEffect(() => {
-    async function loadCircle() {
+    (async () => {
       setLoadingCircle(true);
       try {
         const { data, error } = await CircleService.getCircleBySlug(slug);
         if (error) throw error;
-        const row = (data && data[0]) || null;
-        if (row) {
-          let avatar = defaultAvatar;
-          if (row.creator_photo_reference_url) {
-            const { data: urlData, error: urlErr } = supabase
-              .storage.from('avatars')
-              .getPublicUrl(row.creator_photo_reference_url);
-            if (!urlErr && urlData?.publicUrl) avatar = urlData.publicUrl;
-          }
-          row.creator_avatar_url = avatar;
+        const row = data?.[0] || null;
+        if (row && row.creator_photo_reference_url) {
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(row.creator_photo_reference_url);
+          row.creator_avatar_url = urlData?.publicUrl || defaultAvatar;
         }
         setCircle(row);
-      } catch (err) {
-        setErrorCircle(err);
+      } catch {
         showToast('Failed to load circle.', 'error');
       } finally {
         setLoadingCircle(false);
       }
-    }
-    loadCircle();
+    })();
   }, [slug]);
 
-  // Load members list
   useEffect(() => {
-    async function loadMembers() {
+    (async () => {
       setLoadingMembers(true);
       try {
         const { data, error } = await CircleService.getCircleMembersBySlug(slug);
@@ -76,103 +58,79 @@ export default function CircleDetailPage() {
         const enriched = (data || []).map(m => {
           let avatar = defaultAvatar;
           if (m.photo_reference_url) {
-            const { data: urlData, error: urlErr } = supabase
-              .storage.from('avatars')
-              .getPublicUrl(m.photo_reference_url);
-            if (!urlErr && urlData?.publicUrl) avatar = urlData.publicUrl;
+            const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(m.photo_reference_url);
+            avatar = urlData?.publicUrl || defaultAvatar;
           }
           return { ...m, avatar_url: avatar };
         });
         setMembers(enriched);
-      } catch (err) {
-        setErrorMembers(err);
+      } catch {
         showToast('Failed to load members.', 'error');
       } finally {
         setLoadingMembers(false);
       }
-    }
-    loadMembers();
+    })();
   }, [slug]);
 
-  // Get authenticated user
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setCurrentUserId(user?.id || null);
-    });
-  }, []);
+  const isMember = members.some(m => m.user_id === currentUserId && m.status === 'approved');
+  const isModerator = members.some(m => m.user_id === currentUserId && m.role === 'moderator');
 
-  // Determine membership/moderator status
   useEffect(() => {
-    const member = members.find(
-      m => m.user_id === currentUserId && m.status === 'approved'
-    );
-    setIsMember(!!member);
-    setIsModerator(member?.role === 'moderator');
-  }, [members, currentUserId]);
-
-  // Autocomplete suggestions for internal users
-  useEffect(() => {
-    async function fetchSuggestions() {
-      if (!inviteInput || emailRegex.test(inviteInput)) {
-        setSuggestions([]);
-        setSelectedUser(null);
-        return;
-      }
-      const q = inviteInput.toLowerCase();
+    if (!inviteInput || emailRegex.test(inviteInput)) {
+      setSuggestions([]);
+      setSelectedUser(null);
+      return;
+    }
+    const fetchSuggestions = async () => {
       const { data, error } = await supabase
         .from('person_of_interest')
-        .select('created_by,slug,main_alias')
-        .or(`slug.ilike.%${q}%,main_alias.ilike.%${q}%`)
+        .select('created_by, slug, main_alias')
+        .or(`slug.ilike.%${inviteInput.toLowerCase()}%,main_alias.ilike.%${inviteInput.toLowerCase()}%`)
         .limit(5);
       if (!error && data) {
-        setSuggestions(
-          data.map(u => ({
-            user_id: u.created_by,
-            slug: u.slug,
-            main_alias: u.main_alias,
-          }))
-        );
+        setSuggestions(data.map(u => ({
+          user_id: u.created_by,
+          slug: u.slug,
+          main_alias: u.main_alias,
+        })));
       }
-    }
+    };
     fetchSuggestions();
   }, [inviteInput]);
 
-  // Click outside suggestions to dismiss
   useEffect(() => {
-    function handleClick(e) {
+    const handleClick = e => {
       if (suggRef.current && !suggRef.current.contains(e.target)) {
         setSuggestions([]);
       }
-    }
+    };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  // Invite handler: internal or external
   const handleInvite = async () => {
-    const inputTrim = inviteInput.trim();
-    if (!inputTrim) return;
+    const input = inviteInput.trim();
+    if (!input) return;
 
-    if (selectedUser) {
-      // Internal invite
-      const { error } = await CircleService.manageMember({
-        circleId: circle.id,
-        userId: selectedUser,
-        status: 'approved',
-        role: 'member',
-      });
-      if (error) showToast('Add member failed: ' + error.message, 'error');
-      else showToast('Member added');
-    } else if (emailRegex.test(inputTrim)) {
-      // External email invite
-      const { error } = await CircleService.inviteToCircle(circle.id, inputTrim);
-      if (error) showToast('Invite failed: ' + error.message, 'error');
-      else showToast('Invitation sent');
-    } else {
-      showToast('No matching user found.', 'error');
+    try {
+      if (selectedUser) {
+        await CircleService.manageMember({
+          circleId: circle.id,
+          userId: selectedUser,
+          status: 'approved',
+          role: 'member',
+        });
+        showToast('Member added');
+      } else if (emailRegex.test(input)) {
+        await CircleService.inviteToCircle(circle.id, input);
+        showToast('Invitation sent');
+      } else {
+        showToast('No matching user found.', 'error');
+      }
+    } catch (err) {
+      showToast(`Invite failed: ${err.message}`, 'error');
     }
 
-    // Refresh members and clear
     const { data: newMembers } = await CircleService.getCircleMembersBySlug(slug);
     setMembers(newMembers || []);
     setInviteInput('');
@@ -180,34 +138,29 @@ export default function CircleDetailPage() {
     setSelectedUser(null);
   };
 
-  // Remove (kick) member
   const handleRemove = async userId => {
-    const { error } = await CircleService.manageMember({
-      circleId: circle.id,
-      userId,
-      status: 'removed',
-      role: null,
-    });
-    if (error) showToast('Remove failed: ' + error.message, 'error');
-    else {
+    try {
+      await CircleService.manageMember({
+        circleId: circle.id,
+        userId,
+        status: 'removed',
+        role: null,
+      });
       showToast('Member removed');
       const { data: newMembers } = await CircleService.getCircleMembersBySlug(slug);
       setMembers(newMembers || []);
+    } catch (err) {
+      showToast(`Remove failed: ${err.message}`, 'error');
     }
   };
 
   if (loadingCircle) return <div>Loading circle…</div>;
-  if (errorCircle) return <div>Error: {errorCircle.message}</div>;
   if (!circle) return <div>Circle not found.</div>;
 
   return (
     <div className="container circle-detail">
-      {/* Toast banner */}
-      {toast.message && (
-        <div className={`toast toast-${toast.type}`}>{toast.message}</div>
-      )}
+      {toast.message && <div className={`toast toast-${toast.type}`}>{toast.message}</div>}
 
-      {/* Header: title + invite control */}
       <div className="circle-header">
         <h1 className="circle-title">
           <span className="circle-icon">{circle.icon}</span>
@@ -226,26 +179,16 @@ export default function CircleDetailPage() {
                 setSuggestions([]);
               }}
             />
-            <button
-              className="btn btn-small circle-invite-button"
-              onClick={handleInvite}
-            >
-              ✉️ Invite
-            </button>
+            <button className="btn btn-small circle-invite-button" onClick={handleInvite}>✉️ Invite</button>
             {suggestions.length > 0 && (
               <ul className="invite-suggestions">
                 {suggestions.map(u => (
-                  <li
-                    key={u.user_id}
-                    className="invite-suggestion-item"
-                    onClick={() => {
-                      setInviteInput(u.main_alias);
-                      setSelectedUser(u.user_id);
-                      setSuggestions([]);
-                    }}
-                  >
-                    {u.main_alias}
-                    {u.slug !== u.main_alias && ` (${u.slug})`}
+                  <li key={u.user_id} className="invite-suggestion-item" onClick={() => {
+                    setInviteInput(u.main_alias);
+                    setSelectedUser(u.user_id);
+                    setSuggestions([]);
+                  }}>
+                    {u.main_alias} {u.slug !== u.main_alias && `(${u.slug})`}
                   </li>
                 ))}
               </ul>
@@ -254,39 +197,25 @@ export default function CircleDetailPage() {
         )}
       </div>
 
-      {/* Circle Info & Creator */}
       <p className="circle-info">
         Location: {circle.city}, {circle.state} ({circle.zip})<br />
         Type: {circle.type}
       </p>
+
       <div className="circle-creator">
-        <img
-          className="circle-creator-avatar"
-          src={circle.creator_avatar_url}
-          alt={circle.creator_name}
-        />
+        <img className="circle-creator-avatar" src={circle.creator_avatar_url || defaultAvatar} alt={circle.creator_name} />
         <span>Created by <strong>{circle.creator_name}</strong></span>
       </div>
 
-      {/* Members List */}
       <h2>Members</h2>
-      {loadingMembers && <p>Loading members…</p>}
-      {errorMembers && <p>Error: {errorMembers.message}</p>}
-      {!loadingMembers && !errorMembers && (
+      {loadingMembers ? <p>Loading members…</p> : (
         <ul className="member-list">
           {members.filter(m => m.status === 'approved').map(m => (
             <li key={m.member_id} className="member-item">
-              <img
-                className="member-avatar"
-                src={m.avatar_url}
-                alt={m.main_alias}
-              />
+              <img className="member-avatar" src={m.avatar_url} alt={m.main_alias} />
               <strong>{m.main_alias}</strong>
               {isModerator && m.user_id !== currentUserId && (
-                <button
-                  className="btn btn-small btn-outline member-remove-button"
-                  onClick={() => handleRemove(m.user_id)}
-                >
+                <button className="btn btn-small btn-outline member-remove-button" onClick={() => handleRemove(m.user_id)}>
                   Remove
                 </button>
               )}

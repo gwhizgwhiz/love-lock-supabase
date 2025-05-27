@@ -11,6 +11,9 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export default createClient(supabaseUrl, supabaseKey, {
+  global: {
+    headers: { 'Accept': 'application/json' }, 
+  },
   auth: {
     persistSession: true,
     detectSessionInUrl: true,

@@ -1,13 +1,44 @@
-import React from 'react'
-import { useMyCircles } from '../hooks/useCircles'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import supabase from '../supabaseClient'
+import useAuth from '../hooks/useAuth'
 import '../App.css'
 
 export default function MyCirclesPage() {
   const navigate = useNavigate()
-  const { circles, loading, error } = useMyCircles()
+  const { user, loading: authLoading } = useAuth()
 
-  if (loading) return <p>Loading your circles…</p>
+  const [circles, setCircles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) {
+      setLoading(false)
+      setError(new Error('Not authenticated'))
+      return
+    }
+
+    const loadCircles = async () => {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('circles')
+        .select('*')
+        .eq('created_by', user.id)
+
+      if (error) {
+        setError(error)
+      } else {
+        setCircles(data || [])
+      }
+      setLoading(false)
+    }
+
+    loadCircles()
+  }, [authLoading, user])
+
+  if (loading || authLoading) return <p>Loading your circles…</p>
   if (error) return <p>Error: {error.message}</p>
 
   return (
@@ -20,18 +51,22 @@ export default function MyCirclesPage() {
         Create Circle
       </button>
 
-      <div className="circle-map">
-        {circles.map(c => (
-          <div
-            key={c.id}
-            className="circle-item jitter"
-            onClick={() => navigate(`/circles/${c.slug}`)}
-          >
-            <span className="circle-icon">{c.icon}</span>
-            <div className="circle-name">{c.name}</div>
-          </div>
-        ))}
-      </div>
+      {circles.length === 0 ? (
+        <p>You have no circles yet.</p>
+      ) : (
+        <div className="circle-map">
+          {circles.map(c => (
+            <div
+              key={c.id}
+              className="circle-item jitter"
+              onClick={() => navigate(`/circles/${c.slug}`)}
+            >
+              <span className="circle-icon">{c.icon}</span>
+              <div className="circle-name">{c.name}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   )
 }
