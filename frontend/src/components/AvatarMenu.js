@@ -5,6 +5,13 @@ import supabase from '../supabaseClient'
 import defaultAvatar from '../assets/default-avatar.png'
 import '../App.css'
 
+function resolveAvatarUrl(raw) {
+  if (!raw) return defaultAvatar
+  if (raw.startsWith('http')) return raw
+  const { data, error } = supabase.storage.from('avatars').getPublicUrl(raw)
+  return error ? defaultAvatar : data.publicUrl || defaultAvatar
+}
+
 export default function AvatarMenu({ onSignOut }) {
   const [open, setOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(defaultAvatar)
@@ -12,7 +19,7 @@ export default function AvatarMenu({ onSignOut }) {
   const menuRef = useRef(null)
 
   useEffect(() => {
-    const loadProfileInfo = async () => {
+    const loadProfile = async () => {
       const { data: { user }, error } = await supabase.auth.getUser()
       if (!user || error) return
 
@@ -20,42 +27,19 @@ export default function AvatarMenu({ onSignOut }) {
         .from('profiles')
         .select('avatar_url, slug')
         .eq('user_id', user.id)
-        .single()  // single, not limit(1)
+        .single()
 
       if (profileErr) {
         console.error('Error fetching profile:', profileErr)
         return
       }
 
-      if (profile?.avatar_url) {
-        const { data: urlData, error: urlError } = supabase
-          .storage
-          .from('avatars')  // Your bucket name
-          .getPublicUrl(profile.avatar_url)
-
-        if (urlError) {
-          console.error('Error getting avatar URL:', urlError)
-          setAvatarUrl(defaultAvatar)
-        } else if (urlData?.publicUrl) {
-          setAvatarUrl(urlData.publicUrl)
-        }
-      }
-
-      if (profile?.slug) {
-        setProfileSlug(profile.slug)
-      }
+      setAvatarUrl(resolveAvatarUrl(profile.avatar_url))
+      setProfileSlug(profile.slug || null)
     }
 
-    loadProfileInfo()
+    loadProfile()
   }, [])
-
-  const profileLink = profileSlug ? `/profiles/${profileSlug}` : '/profile/edit'
-
-  const menuItems = [
-    { label: 'My Profile',   to: profileLink },
-    { label: 'Settings',     to: '/settings' },
-    { label: 'Preferences',  to: '/preferences' },
-  ]
 
   useEffect(() => {
     const handler = e => {
@@ -66,6 +50,14 @@ export default function AvatarMenu({ onSignOut }) {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  const profileLink = profileSlug ? `/profiles/${profileSlug}` : '/profile/edit'
+
+  const menuItems = [
+    { label: 'My Profile', to: profileLink },
+    { label: 'Settings', to: '/settings' },
+    { label: 'Preferences', to: '/preferences' },
+  ]
 
   return (
     <div className="avatar-menu inline-block" ref={menuRef}>
@@ -95,7 +87,6 @@ export default function AvatarMenu({ onSignOut }) {
               {label}
             </Link>
           ))}
-
           <button
             className="avatar-menu-item"
             role="menuitem"

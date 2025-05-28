@@ -1,11 +1,32 @@
-// src/pages/ProfilesPage.js
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import supabase from '../supabaseClient'
+import useCurrentUser from '../hooks/useCurrentUser'
 import defaultAvatar from '../assets/default-avatar.png'
 import '../App.css'
 
+async function resolveAvatarUrl(raw) {
+  if (!raw) return defaultAvatar
+  if (raw.startsWith('http')) return raw
+
+  // strip off the "avatars/" folder prefix if it’s in the path
+  const fileKey = raw.replace(/^avatars\//, '')
+
+  // *One* call to getPublicUrl, capturing its returned object
+  const { data, error } = await supabase
+    .storage
+    .from('avatars')
+    .getPublicUrl(fileKey)
+
+  if (error) {
+    console.error('Error resolving avatar URL:', error)
+    return defaultAvatar
+  }
+  return data.publicUrl || defaultAvatar
+}
+
 export default function ProfilesPage() {
+  const { userId, loading: authLoading } = useCurrentUser()
   const [pois, setPois] = useState([])
   const [profiles, setProfiles] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,61 +34,102 @@ export default function ProfilesPage() {
   const [search, setSearch] = useState('')
   const [showProfiles, setShowProfiles] = useState(false)
 
-  // Fetch Persons of Interest and public profiles on mount
   useEffect(() => {
+    if (authLoading) return
+
     async function loadData() {
       setLoading(true)
       try {
-        // Load POIs
+        // 1️⃣ POIs
         const { data: poiData, error: poiErr } = await supabase
           .from('person_of_interest')
-          .select('id, main_alias')
+          .select(`
+            id,
+            trust_badge,
+            main_alias,
+            avatar_url,
+            city,
+            state,
+            trust_score,
+            created_by,
+            is_shareable,
+            is_user_profile
+          `)
+          .eq('is_shareable', true)
+          .eq('is_user_profile', false)
         if (poiErr) throw poiErr
+
         setPois(
-          poiData.map(p => ({ id: p.id, name: p.main_alias, avatar_url: defaultAvatar }))
+          await Promise.all(poiData.map(async p => ({
+            id: p.id,
+            name: p.trust_badge || p.main_alias || '',
+            avatar_url: await resolveAvatarUrl(p.avatar_url),      // ← use p.avatar_url
+            city: p.city || '',
+            state: p.state || '',
+            trust_score: Number(p.trust_score) || 0,
+            createdBy: p.created_by
+          })))
         )
 
-        // Load public user profiles
+        // 2️⃣ Profiles
         const { data: profData, error: profErr } = await supabase
           .from('profiles')
-          .select('id, name, avatar_url, trust_score, city, state')
+          .select(`
+            id,
+            user_id,
+            name,
+            avatar_url,
+            city,
+            state,
+            trust_score
+          `)
           .eq('is_public', true)
         if (profErr) throw profErr
+
         setProfiles(
-          profData.map(p => ({
+          await Promise.all(profData.map(async p => ({
             id: p.id,
-            name: p.name || 'Unnamed',
-            avatar_url: p.avatar_url || defaultAvatar,
-            trust_score: p.trust_score,
-            city: p.city,
-            state: p.state
-          }))
+            name: p.name || '',
+            avatar_url: await resolveAvatarUrl(p.avatar_url),      // ← use p.avatar_url
+            city: p.city || '',
+            state: p.state || '',
+            trust_score: Number(p.trust_score) || 0,
+            createdBy: p.user_id
+          })))
         )
       } catch (err) {
         console.error('Error loading data:', err)
-        setError(err.message || 'Could not load Browse data')
+        setError(err.message || 'Could not load data')
       } finally {
         setLoading(false)
       }
     }
-    loadData()
-  }, [])
 
-  // Filter lists
+    loadData()
+  }, [authLoading])
+
   const term = search.trim().toLowerCase()
-  const filteredPois = pois.filter(p => p.name.toLowerCase().includes(term))
+  const filteredPois = pois.filter(p =>
+    p.name.toLowerCase().includes(term) ||
+    (`${p.city}, ${p.state}`).toLowerCase().includes(term)
+  )
   const filteredProfiles = profiles.filter(p =>
     p.name.toLowerCase().includes(term) ||
-    `${p.city || ''}, ${p.state || ''}`.toLowerCase().includes(term)
+    (`${p.city}, ${p.state}`).toLowerCase().includes(term)
   )
 
-  if (loading) return <div className="spinner">Loading…</div>
+  if (authLoading || loading) return <div className="spinner">Loading…</div>
   if (error) return <p className="empty-state">{error}</p>
+
+  const Hearts = ({ score }) => (
+    <div className="trust-score">
+      {'❤️'.repeat(Math.max(0, Math.min(5, Math.round(score))))}
+      <span className="score-number">{score.toFixed(1)}</span>
+    </div>
+  )
 
   return (
     <div className="container">
-      <h2>Persons of Interest</h2>
-
       <div className="controls" style={{ marginBottom: '1rem' }}>
         <label>
           <input
@@ -75,7 +137,7 @@ export default function ProfilesPage() {
             checked={showProfiles}
             onChange={() => setShowProfiles(prev => !prev)}
           />{' '}
-          Show Public User Profiles
+          {showProfiles ? 'Show Persons of Interest' : 'Show Public Profiles'}
         </label>
         <input
           className="search-input"
@@ -87,50 +149,72 @@ export default function ProfilesPage() {
         />
       </div>
 
-      {filteredPois.length === 0 ? (
-        <p className="empty-state">No persons of interest found.</p>
-      ) : (
-        <div className="profiles-grid">
-          {filteredPois.map(poi => (
-            <Link key={poi.id} to={`/persons/${poi.id}`} className="profile-card">
-              <img src={poi.avatar_url} alt={poi.name} className="profile-avatar" />
-              <h3>{poi.name}</h3>
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {showProfiles && (
-        <section style={{ marginTop: '2rem' }}>
-          <h2>Public User Profiles</h2>
-          {filteredProfiles.length === 0 ? (
-            <p className="empty-state">No public profiles found.</p>
+      {!showProfiles ? (
+        <>
+          <h2>Persons of Interest</h2>
+          {filteredPois.length === 0 ? (
+            <p className="empty-state">No persons of interest found.</p>
           ) : (
             <div className="profiles-grid">
-              {filteredProfiles.map(user => (
-                <Link key={user.id} to={`/profiles/${user.id}`} className="profile-card">
+              {filteredPois.map(p => (
+                <Link
+                  key={p.id}
+                  to={`/persons/${p.id}`}
+                  className="profile-card"
+                >
                   <img
-                    src={user.avatar_url}
-                    alt={user.name}
+                    src={p.avatar_url}
+                    alt={p.name || 'POI'}
                     className="profile-avatar"
                   />
-                  <h3>{user.name}</h3>
-                  <div className="trust-score">
-                    {'❤️'.repeat(
-                      Math.max(0, Math.min(5, Math.round(user.trust_score || 0)))
+                  <h3>
+                    {p.name || 'Unnamed'}
+                    {p.createdBy === userId && (
+                      <span className="badge">This is you</span>
                     )}
-                    <span className="score-number">
-                      {(user.trust_score || 0).toFixed(1)}
-                    </span>
-                  </div>
+                  </h3>
+                  <Hearts score={p.trust_score} />
                   <small className="region">
-                    {user.city || '—'}, {user.state || ''}
+                    {p.city || '—'}, {p.state}
                   </small>
                 </Link>
               ))}
             </div>
           )}
-        </section>
+        </>
+      ) : (
+        <>
+          <h2>Public User Profiles</h2>
+          {filteredProfiles.length === 0 ? (
+            <p className="empty-state">No public profiles found.</p>
+          ) : (
+            <div className="profiles-grid">
+              {filteredProfiles.map(p => (
+                <Link
+                  key={p.id}
+                  to={`/profiles/${p.id}`}
+                  className="profile-card"
+                >
+                  <img
+                    src={p.avatar_url}
+                    alt={p.name || 'User'}
+                    className="profile-avatar"
+                  />
+                  <h3>
+                    {p.name || 'Unnamed'}
+                    {p.createdBy === userId && (
+                      <span className="badge">This is you</span>
+                    )}
+                  </h3>
+                  <Hearts score={p.trust_score} />
+                  <small className="region">
+                    {p.city || '—'}, {p.state}
+                  </small>
+                </Link>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

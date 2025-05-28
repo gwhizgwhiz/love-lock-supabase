@@ -1,60 +1,81 @@
 // src/hooks/useAuth.js
 import { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
+import defaultAvatar from '../assets/default-avatar.png';
 
 export default function useAuth() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
   const [slug, setSlug] = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => setUser(session?.user ?? null)
-    );
-    return () => listener.subscription.unsubscribe();
+    // Auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Initial user load
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
+    if (user === null) return; // Still loading
     if (!user) {
+      // Logged out
+      setProfile(null);
       setSlug(null);
-      setAvatarUrl(null);
-      setUnreadCount(0);
+      setAvatarUrl(defaultAvatar);
+      setLoading(false);
       return;
     }
 
+    // Fetch profile for logged-in user
     (async () => {
-      const { data: profile, error: profileError } = await supabase
+      setLoading(true);
+      const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, dating_preference, city, state, slug, zipcode')
+        .select('id, slug, avatar_url')
         .eq('user_id', user.id)
         .single();
 
-      if (profileError) {
-        console.error('Error fetching profile info:', profileError);
-      } else if (profile) {
-        setSlug(profile.name || null);
-        if (profile.avatar_url) {
-          const { data: urlData, error: urlError } = supabase
+      if (error || !profileData) {
+        console.warn('Profile not found for user:', error?.message || 'No profile data');
+        setProfile(null);
+        setSlug(null);
+        setAvatarUrl(defaultAvatar);
+      } else {
+        setProfile(profileData);
+        setSlug(profileData.slug || null);
+
+        // Avatar logic
+        if (!profileData.avatar_url) {
+          setAvatarUrl(defaultAvatar);
+        } else if (profileData.avatar_url.startsWith('http')) {
+          setAvatarUrl(profileData.avatar_url);
+        } else {
+          const { data: { publicUrl }, error: avatarError } = supabase
             .storage
             .from('avatars')
-            .getPublicUrl(profile.avatar_url);
-          if (urlError) {
-            console.error('Error generating avatar public URL:', urlError);
-            setAvatarUrl(null);
+            .getPublicUrl(profileData.avatar_url);
+
+          if (avatarError) {
+            console.error('Avatar fetch error:', avatarError.message);
+            setAvatarUrl(defaultAvatar);
           } else {
-            setAvatarUrl(urlData.publicUrl || null);
+            setAvatarUrl(publicUrl || defaultAvatar);
           }
-        } else {
-          setAvatarUrl(null);
         }
       }
 
-      // For now: skip unread count until we wire up messaging
-      setUnreadCount(0);
+      setLoading(false);
     })();
   }, [user]);
 
-  return { user, slug, avatarUrl, unreadCount };
+  return { user, profile, slug, avatarUrl, loading };
 }
