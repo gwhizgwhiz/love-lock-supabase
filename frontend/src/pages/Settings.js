@@ -1,34 +1,50 @@
-// frontend/src/pages/Settings.js
+// src/pages/Settings.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate }                 from 'react-router-dom';
-import supabase                        from '../supabaseClient';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import useCurrentUser from '../hooks/useCurrentUser';
 import '../App.css';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [user, setUser]           = useState(null);
-  const [email, setEmail]         = useState('');
+  const { userId, loading: userLoading } = useCurrentUser();
+  const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [error, setError]         = useState(null);
-  const [saving, setSaving]       = useState(false);
+  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data:{user}, error }) => {
-      if (error||!user) navigate('/login');
-      else { setUser(user); setEmail(user.email); }
-    });
-  }, [navigate]);
+    const loadEmail = async () => {
+      if (!userId) return;
 
-  const handleSubmit = async e => {
-    e.preventDefault(); setSaving(true); setError(null);
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        navigate('/login');
+      } else {
+        setEmail(user.email);
+      }
+    };
+
+    loadEmail();
+  }, [userId, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
     const updates = { email };
     if (newPassword) updates.password = newPassword;
-    const { error:updateErr } = await supabase.auth.updateUser(updates);
-    if (updateErr) setError(updateErr.message);
+
+    const { error: updateErr } = await supabase.auth.updateUser(updates);
+    if (updateErr) setError(updateErr.message || 'An error occurred.');
+    else setError(null);
+
     setSaving(false);
   };
 
-  if (!user) return <div className="spinner">Loading…</div>;
+  if (userLoading) return <div className="spinner">Loading…</div>;
+  if (!userId) return <div className="spinner">Redirecting…</div>;
 
   return (
     <div className="container settings-container">
@@ -37,11 +53,21 @@ export default function Settings() {
       <form className="form" onSubmit={handleSubmit}>
         <label>
           Email
-          <input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </label>
         <label>
           New Password
-          <input type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} placeholder="Leave blank to keep current"/>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Leave blank to keep current"
+          />
         </label>
         <button type="submit" className="btn" disabled={saving}>
           {saving ? 'Saving…' : 'Save Changes'}

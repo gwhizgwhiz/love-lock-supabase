@@ -1,72 +1,77 @@
 // src/pages/DashboardPage.js
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import supabase from '../supabaseClient'
-import useCurrentUser from '../hooks/useCurrentUser'
-import defaultAvatar from '../assets/default-avatar.png'
-import '../App.css'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import useCurrentUser from '../hooks/useCurrentUser';
+import defaultAvatar from '../assets/default-avatar.png';
+import resolveAvatarUrl from '../lib/resolveAvatarUrl';
+import '../App.css';
 
 export default function DashboardPage() {
-  const { userId, loading: authLoading } = useCurrentUser()
-  const [profile, setProfile] = useState(null)
-  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar)
-  const [circles, setCircles] = useState([])
-  const [inboxCount, setInboxCount] = useState(0)
-  const [interactions, setInteractions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const navigate = useNavigate()
+  const { userId, loading } = useCurrentUser();
+  const [profile, setProfile] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
+  const [circles, setCircles] = useState([]);
+  const [inboxCount, setInboxCount] = useState(0);
+  const [interactions, setInteractions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (authLoading || !userId) return
+    if (loading || !userId) return;
 
     const loadDashboard = async () => {
-      setLoading(true)
+      setIsLoading(true);
       try {
+        // Profile
+
         // Profile
         const { data: prof, error: profErr } = await supabase
           .from('profiles')
           .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, dating_preference, city, state, zip, is_public')
           .eq('user_id', userId)
-          .single()
-        if (profErr) throw profErr
-        setProfile(prof)
-        setAvatarUrl(prof.avatar_url || defaultAvatar)
+          .single();
+
+        if (profErr) throw profErr;
+
+        setProfile(prof);
+        setAvatarUrl(await resolveAvatarUrl(prof.avatar_url) || defaultAvatar);
+
 
         // Circles
         const { data: circ, error: circErr } = await supabase
           .from('circle_members')
           .select('circle_id, role, circles(name, created_by)')
-          .eq('user_id', userId)
-        if (circErr) throw circErr
-        setCircles(circ)
+          .eq('user_id', userId);
+        if (circErr) throw circErr;
+        setCircles(circ);
 
         // Interactions
         const { data: inter, error: interErr } = await supabase
           .from('interactions')
           .select('id, date_of_experience, what_went_right, what_went_wrong, profile_match_vote, person_of_interest(main_alias)')
           .eq('reporter_id', userId)
-          .order('created_at', { ascending: false })
-        if (interErr) throw interErr
-        setInteractions(inter)
+          .order('created_at', { ascending: false });
+        if (interErr) throw interErr;
+        setInteractions(inter);
 
         // Inbox placeholder
-        setInboxCount(0)
+        setInboxCount(0);
       } catch (err) {
-        console.error('Dashboard load error:', err)
+        console.error('Dashboard load error:', err);
       } finally {
-        setLoading(false)
+        setIsLoading(false);
       }
-    }
-    loadDashboard()
-  }, [authLoading, userId])
+    };
+    loadDashboard();
+  }, [loading, userId]);
 
-  if (authLoading || loading) return <div className="spinner">Loading…</div>
+  if (loading || isLoading) return <div className="spinner">Loading…</div>;
 
   return (
     <div className="container">
       <h2>Welcome Back!</h2>
       <section className="profile-summary">
-        <h3>Your Profile</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img src={avatarUrl} alt="Avatar" className="avatar-menu-avatar" />
           <div>
@@ -113,5 +118,5 @@ export default function DashboardPage() {
         )}
       </section>
     </div>
-  )
+  );
 }

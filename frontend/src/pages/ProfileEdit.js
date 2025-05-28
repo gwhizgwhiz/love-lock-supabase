@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import supabase from '../supabaseClient'
-import useCurrentUser from '../hooks/useCurrentUser'
-import defaultAvatar from '../assets/default-avatar.png'
-import '../App.css'
+// src/pages/ProfileEdit.js
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import useCurrentUser from '../hooks/useCurrentUser';
+import defaultAvatar from '../assets/default-avatar.png';
+import uploadAvatar from '../lib/uploadAvatar'; // New helper
+import '../App.css';
 
 export default function ProfileEdit() {
   const {
@@ -12,67 +14,59 @@ export default function ProfileEdit() {
     avatarUrl: initialAvatarUrl,
     loading: authLoading,
     error: authError
-  } = useCurrentUser()
-  const navigate = useNavigate()
+  } = useCurrentUser();
+  const navigate = useNavigate();
 
   // Form state
-  const [name, setName] = useState('')
-  const [gender, setGender] = useState('')
-  const [preference, setPreference] = useState('')
-  const [age, setAge] = useState('')
-  const [city, setCity] = useState('')
-  const [state, setState] = useState('')
-  const [zip, setZip] = useState('')
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
+  const [preference, setPreference] = useState('');
+  const [age, setAge] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zip, setZip] = useState('');
 
-  // Avatar upload state
-  const [avatarKey, setAvatarKey] = useState('')
-  const [avatarPreview, setAvatarPreview] = useState(defaultAvatar)
+  // Avatar state
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(defaultAvatar);
 
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (authLoading) return
+    if (authLoading) return;
 
     if (profile) {
-      setName(profile.name || '')
-      setGender(profile.gender_identity || '')
-      setPreference(profile.dating_preference || '')
-      setAge(profile.age?.toString() || '')
-      setCity(profile.city || '')
-      setState(profile.state || '')
-      setZip(profile.zip || profile.zipcode || '')
-
-      setAvatarKey(profile.avatar_url || '')
-      setAvatarPreview(initialAvatarUrl || defaultAvatar)
+      setName(profile.name || '');
+      setGender(profile.gender_identity || '');
+      setPreference(profile.dating_preference || '');
+      setAge(profile.age?.toString() || '');
+      setCity(profile.city || '');
+      setState(profile.state || '');
+      setZip(profile.zip || profile.zipcode || '');
+      setAvatarPreview(initialAvatarUrl || defaultAvatar);
     }
-  }, [authLoading, profile, initialAvatarUrl])
+  }, [authLoading, profile, initialAvatarUrl]);
 
-  const handleFileChange = async e => {
-    const file = e.target.files[0]
-    if (!file) return
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
 
-    setAvatarPreview(URL.createObjectURL(file))
-
-    const ext = file.name.split('.').pop()
-    const key = `${userId}-${Date.now()}.${ext}`;  
-    const { error: upErr } = await supabase
-      .storage
-      .from('avatars')
-      .upload(key, file, { upsert: true })
-    if (upErr) {
-      setError(upErr.message)
-      return
-    }
-    setAvatarKey(key)
-  }
-
-  const handleSubmit = async e => {
-    e.preventDefault()
-    setSaving(true)
-    setError(null)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
 
     try {
+      let newAvatarKey = profile?.avatar_url || null;
+
+      if (avatarFile) {
+        newAvatarKey = await uploadAvatar(avatarFile, userId);
+      }
+
       const updates = {
         user_id: userId,
         name: name.trim(),
@@ -82,39 +76,37 @@ export default function ProfileEdit() {
         city,
         state,
         zip,
-        avatar_url: avatarKey || null,
-        is_public: true // Optional: set profiles as public
-      }
+        avatar_url: newAvatarKey,
+        is_public: true
+      };
 
-      let error
+      let error;
 
       if (profile) {
-        // Update existing profile
         const { error: updateErr } = await supabase
           .from('profiles')
           .update(updates)
-          .eq('user_id', userId)
-        error = updateErr
+          .eq('user_id', userId);
+        error = updateErr;
       } else {
-        // Create new profile
         const { error: insertErr } = await supabase
           .from('profiles')
-          .insert(updates)
-        error = insertErr
+          .insert(updates);
+        error = insertErr;
       }
 
-      if (error) throw error
+      if (error) throw error;
 
-      navigate('/dashboard')
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
-  if (authLoading) return <div className="spinner">Loading…</div>
-  if (authError) return <p className="error-message">{authError}</p>
+  if (authLoading) return <div className="spinner">Loading…</div>;
+  if (authError) return <p className="error-message">{authError}</p>;
 
   return (
     <div className="container profile-edit-container">
@@ -225,5 +217,5 @@ export default function ProfileEdit() {
         </button>
       </form>
     </div>
-  )
+  );
 }

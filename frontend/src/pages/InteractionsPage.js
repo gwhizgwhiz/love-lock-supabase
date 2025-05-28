@@ -1,55 +1,52 @@
 // src/pages/InteractionsPage.jsx
-import { useState, useEffect } from 'react'
-import Select from 'react-select'
-import supabase from '../supabaseClient'
-import defaultAvatar from '../assets/default-avatar.png'
-import '../App.css'
+import { useState, useEffect } from 'react';
+import Select from 'react-select';
+import supabase from '../supabaseClient';
+import useCurrentUser from '../hooks/useCurrentUser';
+import resolveAvatarUrl from '../lib/resolveAvatarUrl';
+import defaultAvatar from '../assets/default-avatar.png';
+import '../App.css';
 
 export default function InteractionsPage() {
-  const [poiOptions, setPoiOptions] = useState([])
-  const [selectedPoi, setSelectedPoi] = useState(null)
-  const [searchInput, setSearchInput] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
-  const [error, setError] = useState('')
+  const { userId, loading: userLoading } = useCurrentUser();
 
-  const [userId, setUserId] = useState(null)
-
-  useEffect(() => {
-    const getCurrentUserId = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (user && !error) setUserId(user.id)
-    }
-    getCurrentUserId()
-  }, [])
+  const [poiOptions, setPoiOptions] = useState([]);
+  const [selectedPoi, setSelectedPoi] = useState(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (!searchInput) return
+      if (!searchInput) return;
 
       const { data, error } = await supabase
         .from('person_of_interest')
         .select('id, main_alias, platform, avatar_url, city, state, trust_score')
-        .ilike('main_alias', `%${searchInput}%`)
+        .ilike('main_alias', `%${searchInput}%`);
 
       if (!error && data) {
-        const enriched = data.map(p => ({
-          value: p.id,
-          label: p.main_alias,
-          data: p
-        }))
-        setPoiOptions(enriched)
+        const enriched = await Promise.all(
+          data.map(async (p) => ({
+            value: p.id,
+            label: p.main_alias,
+            data: {
+              ...p,
+              avatar_url: await resolveAvatarUrl(p.avatar_url),
+            },
+          }))
+        );
+        setPoiOptions(enriched);
       } else if (error) {
-        console.error('Failed to load POI options:', error)
+        console.error('Failed to load POI options:', error);
       }
-    }
+    };
 
-    fetchSuggestions()
-  }, [searchInput])
+    fetchSuggestions();
+  }, [searchInput]);
 
   const [form, setForm] = useState({
-    alias: '',
-    platform: '',
     date_of_experience: '',
     locations: '',
     profile_match_vote: '',
@@ -57,60 +54,49 @@ export default function InteractionsPage() {
     what_went_right: '',
     what_went_wrong: '',
     screenshot_url: '',
-    verified_with_screenshot: false
-  })
+    verified_with_screenshot: false,
+  });
 
-  const handleInputChange = e => {
-    const { name, value, type, checked } = e.target
-    setForm(prev => ({
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
-  }
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
 
-  const handlePoiChange = selected => {
-    setSelectedPoi(selected)
-    if (selected && selected.data) {
-      const { main_alias, platform } = selected.data
-      setForm(prev => ({
-        ...prev,
-        alias: main_alias,
-        platform: platform || ''
-      }))
-    } else {
-      setForm(prev => ({ ...prev, alias: '', platform: '' }))
-    }
-  }
+  const handlePoiChange = (selected) => {
+    setSelectedPoi(selected);
+  };
 
-  const CustomOption = props => {
-    const { data, innerRef, innerProps } = props
-    const poi = data.data
-    const avatar = poi?.avatar_url
-      ? supabase.storage.from('avatars').getPublicUrl(poi.avatar_url).data.publicUrl
-      : defaultAvatar
+  const CustomOption = (props) => {
+    const { data, innerRef, innerProps } = props;
+    const poi = data.data;
 
     return (
       <div ref={innerRef} {...innerProps} className="select-option">
-        <img src={avatar} alt={poi.main_alias} className="avatar-thumb" />
+        <img src={poi.avatar_url || defaultAvatar} alt={poi.main_alias} className="avatar-thumb" />
         <div className="select-info">
-          <div className="alias">{poi.main_alias} <small>({poi.platform || '-'})</small></div>
+          <div className="alias">
+            {poi.main_alias} <small>({poi.platform || '-'})</small>
+          </div>
           <div className="location">{poi.city || '–'}, {poi.state || ''}</div>
           <div className="trust">❤️ {poi.trust_score ?? 0}</div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError('')
-    setSuccessMessage('')
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    setSuccessMessage('');
 
     if (!userId || !selectedPoi || !form.date_of_experience) {
-      setError('Please complete all required fields.')
-      setSubmitting(false)
-      return
+      setError('Please complete all required fields.');
+      setSubmitting(false);
+      return;
     }
 
     const payload = {
@@ -123,18 +109,16 @@ export default function InteractionsPage() {
       what_went_right: form.what_went_right,
       what_went_wrong: form.what_went_wrong,
       screenshot_url: form.screenshot_url,
-      verified_with_screenshot: form.verified_with_screenshot
-    }
+      verified_with_screenshot: form.verified_with_screenshot,
+    };
 
-    const { error: insertError } = await supabase.from('person_experiences').insert([payload])
+    const { error: insertError } = await supabase.from('person_experiences').insert([payload]);
 
     if (insertError) {
-      setError(insertError.message)
+      setError(insertError.message);
     } else {
-      setSuccessMessage('Interaction logged successfully!')
+      setSuccessMessage('Interaction logged successfully!');
       setForm({
-        alias: '',
-        platform: '',
         date_of_experience: '',
         locations: '',
         profile_match_vote: '',
@@ -142,13 +126,14 @@ export default function InteractionsPage() {
         what_went_right: '',
         what_went_wrong: '',
         screenshot_url: '',
-        verified_with_screenshot: false
-      })
-      setSelectedPoi(null)
+        verified_with_screenshot: false,
+      });
+      setSelectedPoi(null);
+      setSearchInput('');
     }
 
-    setSubmitting(false)
-  }
+    setSubmitting(false);
+  };
 
   return (
     <div className="container">
@@ -162,9 +147,9 @@ export default function InteractionsPage() {
           <label>Search for a person</label>
           <Select
             options={poiOptions}
-            onInputChange={val => setSearchInput(val)}
+            onInputChange={(val) => setSearchInput(val)}
             onChange={handlePoiChange}
-            getOptionLabel={e => e.label}
+            getOptionLabel={(e) => e.label}
             components={{ Option: CustomOption }}
             placeholder="Start typing a name…"
             isClearable
@@ -255,5 +240,5 @@ export default function InteractionsPage() {
         </button>
       </form>
     </div>
-  )
+  );
 }

@@ -13,7 +13,7 @@ function RouteLoader() {
 
     setIsVisible(true); // show spinner immediately
 
-    const cleanup = () => {
+    const handleFinish = () => {
       const elapsed = Date.now() - start;
       const remaining = MIN_DURATION - elapsed;
 
@@ -22,9 +22,7 @@ function RouteLoader() {
       }, remaining > 0 ? remaining : 0);
     };
 
-    cleanup();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    handleFinish();
   }, [location]);
 
   return isVisible ? <Loading /> : null;

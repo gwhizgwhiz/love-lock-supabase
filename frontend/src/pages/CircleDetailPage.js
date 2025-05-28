@@ -1,8 +1,10 @@
+// src/pages/CircleDetailPage.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { CircleService } from '../lib/circles';
 import supabase from '../supabaseClient';
-import useAuth from '../hooks/useAuth';
+import useCurrentUser from '../hooks/useCurrentUser';
+import resolveAvatarUrl from '../lib/resolveAvatarUrl';
 import defaultAvatar from '../assets/default-avatar.png';
 import '../App.css';
 
@@ -10,9 +12,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function CircleDetailPage() {
   const { slug } = useParams();
-  const { user } = useAuth();  // Get current user from global context
-  const currentUserId = user?.id;
-
+  const { userId: currentUserId, loading: userLoading } = useCurrentUser();
   const [circle, setCircle] = useState(null);
   const [members, setMembers] = useState([]);
   const [loadingCircle, setLoadingCircle] = useState(true);
@@ -37,8 +37,7 @@ export default function CircleDetailPage() {
         if (error) throw error;
         const row = data?.[0] || null;
         if (row && row.creator_avatar_url) {
-          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(row.creator_avatar_url);
-          row.creator_avatar_url = urlData?.publicUrl || defaultAvatar;
+          row.creator_avatar_url = await resolveAvatarUrl(row.creator_avatar_url);
         }
         setCircle(row);
       } catch {
@@ -55,14 +54,10 @@ export default function CircleDetailPage() {
       try {
         const { data, error } = await CircleService.getCircleMembersBySlug(slug);
         if (error) throw error;
-        const enriched = (data || []).map(m => {
-          let avatar = defaultAvatar;
-          if (m.avatar_url) {
-            const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(m.avatar_url);
-            avatar = urlData?.publicUrl || defaultAvatar;
-          }
-          return { ...m, avatar_url: avatar };
-        });
+        const enriched = await Promise.all((data || []).map(async m => ({
+          ...m,
+          avatar_url: await resolveAvatarUrl(m.avatar_url),
+        })));
         setMembers(enriched);
       } catch {
         showToast('Failed to load members.', 'error');
@@ -72,8 +67,8 @@ export default function CircleDetailPage() {
     })();
   }, [slug]);
 
-  const isMember = members.some(m => m.user_id === currentUserId && m.status === 'approved');
-  const isModerator = members.some(m => m.user_id === currentUserId && m.role === 'moderator');
+  const isMember = !userLoading && members.some(m => m.user_id === currentUserId && m.status === 'approved');
+  const isModerator = !userLoading && members.some(m => m.user_id === currentUserId && m.role === 'moderator');
 
   useEffect(() => {
     if (!inviteInput || emailRegex.test(inviteInput)) {

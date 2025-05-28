@@ -1,31 +1,21 @@
 // src/hooks/useCircles.js
 import { useState, useEffect, useCallback } from 'react';
 import { CircleService } from '../lib/circles';
-import supabase         from '../supabaseClient';
+import useCurrentUser from './useCurrentUser';
 
 export function useMyCircles() {
+  const { userId, loading: userLoading } = useCurrentUser();
   const [circles, setCircles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   const fetch = useCallback(async () => {
+    if (userLoading || !userId) return;
+
     setLoading(true);
     setError(null);
 
-    // 1. Get current user
-    const {
-      data: { user },
-      error: userError
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      setError(userError || new Error('No authenticated user'));
-      setLoading(false);
-      return;
-    }
-
-    // 2. Fetch circles for that user
-    const { data, error: fetchError } = await CircleService.getMyCircles(user.id);
+    const { data, error: fetchError } = await CircleService.getMyCircles(userId);
     setLoading(false);
 
     if (fetchError) {
@@ -33,7 +23,7 @@ export function useMyCircles() {
     } else {
       setCircles(data || []);
     }
-  }, []);
+  }, [userId, userLoading]);
 
   useEffect(() => {
     fetch();
@@ -45,7 +35,7 @@ export function useMyCircles() {
 export function useCircleMembers(circleId) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   const fetch = useCallback(async () => {
     setLoading(true);

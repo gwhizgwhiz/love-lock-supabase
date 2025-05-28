@@ -1,58 +1,67 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import supabase from '../supabaseClient'
+// src/pages/ResetRequest.jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import '../App.css';
 
 export default function ResetRequest() {
-  const [email, setEmail] = useState('')
-  const [status, setStatus] = useState(null)
-  const navigate = useNavigate()
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState(null);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    setStatus('sending')
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email,
-      { redirectTo: window.location.origin + '/reset-password' }
-    )
-    if (error) {
-      console.error('Reset request error:', error.message)
-      setStatus('error')
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    setError(null);
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (resetError) {
+      console.error('Reset request error:', resetError.message);
+      setError(resetError.message || 'Could not send reset email. Please try again.');
+      setStatus('error');
     } else {
-      setStatus('sent')
+      setStatus('sent');
     }
-  }
+  };
 
   if (status === 'sent') {
     return (
-      <div style={{ padding: '2rem' }}>
-        <h2>Check your inbox</h2>
+      <div className="container" style={{ textAlign: 'center' }}>
+        <h2>Check Your Inbox</h2>
         <p>We’ve emailed you a link to reset your password.</p>
-        <button onClick={() => navigate('/login')}>Back to Login</button>
+        <button className="btn" onClick={() => navigate('/login')}>
+          Back to Login
+        </button>
       </div>
-    )
+    );
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className="container" style={{ maxWidth: '400px', margin: '0 auto' }}>
       <h2>Forgot Password</h2>
       <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Your email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-          style={{ width: '100%', padding: '.5rem', marginBottom: '1rem' }}
-        />
+        <div className="input-group">
+          <label>Email Address</label>
+          <input
+            type="email"
+            className="input-field"
+            placeholder="Your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
         <button className="btn" type="submit" disabled={status === 'sending'}>
           {status === 'sending' ? 'Sending…' : 'Send Reset Link'}
         </button>
       </form>
       {status === 'error' && (
-        <p style={{ color: 'red', marginTop: '1rem' }}>
-          Could not send reset email. Check your address and try again.
-        </p>
+        <p className="error" style={{ marginTop: '1rem' }}>{error}</p>
       )}
     </div>
-  )
+  );
 }

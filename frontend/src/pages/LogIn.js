@@ -1,31 +1,39 @@
-import React, { useState }  from 'react';
-import { useNavigate }      from 'react-router-dom';
-import supabase             from '../supabaseClient';
-import loginImg             from '../assets/login_img.jpg';
-import { Link }             from 'react-router-dom'
+// src/pages/LogIn.jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import loginImg from '../assets/login_img.jpg';
+import { Link } from 'react-router-dom';
 import '../App.css';
 
 export default function LogIn() {
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState(null);
-  const navigate                = useNavigate();
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleLogin = async e => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
+
     try {
-      const { data: { user }, error } = await supabase.auth.signInWithPassword({
-        email, password
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      if (error) throw error;
+      if (signInError) throw signInError;
+
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
       if (!user.email_confirmed_at) {
         navigate('/verify-email');
         return;
       }
-      navigate('/dashboard'); // go to HomePage
+
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'An unexpected error occurred.');
     }
   };
 
@@ -44,7 +52,7 @@ export default function LogIn() {
               type="email"
               className="input-field"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -54,7 +62,7 @@ export default function LogIn() {
               type="password"
               className="input-field"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>

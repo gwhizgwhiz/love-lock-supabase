@@ -1,11 +1,11 @@
-// src/pages/Compose.jsx
+// frontend/src/pages/Compose.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import useAuth from '../hooks/useAuth';
+import useCurrentUser from '../hooks/useCurrentUser';
 
 export default function Compose() {
-  const { user, loading: authLoading } = useAuth();
+  const { userId, profile, slug, avatarUrl, loading } = useCurrentUser();
   const [profiles, setProfiles] = useState([]);
   const [toUser, setToUser] = useState('');
   const [text, setText] = useState('');
@@ -15,20 +15,24 @@ export default function Compose() {
 
   // Load all users except self for selection
   useEffect(() => {
-    if (authLoading || !user) return;
-    supabase
-      .from('person_of_interest')
-      .select('created_by, slug')
-      .neq('created_by', user.id)
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Load profiles error:', error);
-          setError('Could not load users.');
-        } else {
-          setProfiles(data);
-        }
-      });
-  }, [authLoading, user]);
+    if (loading || !userId) return;
+
+    const loadProfiles = async () => {
+      const { data, error } = await supabase
+        .from('person_of_interest')
+        .select('created_by, slug')
+        .neq('created_by', userId);
+
+      if (error) {
+        console.error('Load profiles error:', error);
+        setError('Could not load users.');
+      } else {
+        setProfiles(data);
+      }
+    };
+
+    loadProfiles();
+  }, [loading, userId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,8 +45,9 @@ export default function Compose() {
       // Create thread
       const { data: threads, error: threadErr } = await supabase
         .from('message_threads')
-        .insert({ user_one: user.id, user_two: toUser })
+        .insert({ user_one: userId, user_two: toUser })
         .select('id');
+
       if (threadErr) throw threadErr;
       const threadId = threads[0].id;
 
@@ -51,6 +56,7 @@ export default function Compose() {
         p_thread_id: threadId,
         p_text: text.trim(),
       });
+
       if (msgErr) throw msgErr;
 
       navigate(`/threads/${threadId}`);
@@ -62,7 +68,7 @@ export default function Compose() {
     }
   };
 
-  if (authLoading) return <div className="spinner" />;
+  if (loading) return <div className="spinner" />;
 
   return (
     <div className="inbox-container">

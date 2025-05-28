@@ -1,103 +1,93 @@
 // src/pages/Inbox.jsx
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import supabase from '../supabaseClient'
-import useAuth from '../hooks/useAuth'
-
-import '../App.css'
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import useCurrentUser from '../hooks/useCurrentUser';
+import '../App.css';
 
 export default function Inbox() {
-  const { user } = useAuth()
-  const [threads, setThreads] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [searchInput, setSearchInput] = useState('')
+  const { userId, profile, slug, avatarUrl, loading: userLoading } = useCurrentUser();
+  const [threads, setThreads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     const fetchInbox = async () => {
-      setLoading(true)
-      setError(null)
+      if (userLoading || !userId) return;
 
-      if (!user) {
-        setError('No authenticated user.')
-        setLoading(false)
-        return
-      }
+      setLoading(true);
+      setError(null);
 
       try {
         // Fetch threads where the user is a participant
         const { data: threadsData, error: threadsError } = await supabase
           .from('message_threads')
-          .select(`
-            id,
-            user_one,
-            user_two,
-            last_message_at
-          `)
-          .or(`user_one.eq.${user.id},user_two.eq.${user.id}`)
-          .order('last_message_at', { ascending: false })
+          .select('id, user_one, user_two, last_message_at')
+          .or(`user_one.eq.${userId},user_two.eq.${userId}`)
+          .order('last_message_at', { ascending: false });
 
-        if (threadsError) throw threadsError
+        if (threadsError) throw threadsError;
 
         // Map threads to include other user's profile info
         const mappedThreads = await Promise.all(
           (threadsData || []).map(async (thread) => {
-            const otherUserId = thread.user_one === user.id ? thread.user_two : thread.user_one
+            const otherUserId = thread.user_one === userId ? thread.user_two : thread.user_one;
 
             // Fetch the other user's profile
-            const { data: profile, error: profileError } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('first_name, last_name, slug, avatar_url')
               .eq('user_id', otherUserId)
-              .single()
+              .single();
 
             if (profileError) {
-              console.warn('Profile fetch error:', profileError)
-              return null
+              console.warn('Profile fetch error:', profileError);
+              return null;
             }
 
             // Fetch unread count for this thread
             const { count, error: countError } = await supabase
               .from('message')
               .select('*', { count: 'exact', head: true })
-              .eq('receiver_id', user.id)
+              .eq('receiver_id', userId)
               .eq('message_thread_id', thread.id)
-              .is('read_at', null)
+              .is('read_at', null);
 
             if (countError) {
-              console.warn('Unread count error:', countError)
+              console.warn('Unread count error:', countError);
             }
 
             return {
               thread_id: thread.id,
               last_message_at: thread.last_message_at,
               unread_count: count || 0,
-              other_user_name: `${profile.first_name} ${profile.last_name}`,
-              other_user_slug: profile.slug,
-              other_user_avatar_url: profile.avatar_url || '/default-avatar.png',
-            }
+              other_user_name: `${profileData.first_name} ${profileData.last_name}`,
+              other_user_slug: profileData.slug,
+              other_user_avatar_url: profileData.avatar_url || '/default-avatar.png',
+            };
           })
-        )
+        );
 
-        setThreads(mappedThreads.filter(Boolean))
+        setThreads(mappedThreads.filter(Boolean));
       } catch (err) {
-        console.error('Inbox load error:', err)
-        setError('Could not load your inbox.')
+        console.error('Inbox load error:', err);
+        setError('Could not load your inbox.');
       }
 
-      setLoading(false)
-    }
+      setLoading(false);
+    };
 
-    fetchInbox()
-  }, [user])
+    fetchInbox();
+  }, [userId, userLoading]);
 
   const filteredThreads = threads.filter(t =>
     t.other_user_name.toLowerCase().includes(searchInput.toLowerCase()) ||
     t.other_user_slug.toLowerCase().includes(searchInput.toLowerCase())
-  )
+  );
 
-  if (loading) return <div className="spinner">Loading…</div>
-  if (error) return <div className="empty-state" style={{ color: 'red' }}>{error}</div>
+  if (loading) return <div className="spinner">Loading…</div>;
+  if (error) return <div className="empty-state" style={{ color: 'red' }}>{error}</div>;
 
   return (
     <div className="inbox-container">
@@ -151,5 +141,5 @@ export default function Inbox() {
         )}
       </div>
     </div>
-  )
+  );
 }

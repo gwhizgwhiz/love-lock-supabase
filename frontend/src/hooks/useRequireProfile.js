@@ -1,21 +1,22 @@
+// src/hooks/useRequireProfile.js
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import useAuth from './useAuth';
+import useCurrentUser from './useCurrentUser';
 import supabase from '../supabaseClient';
 
 export default function useRequireProfile() {
-  const { user } = useAuth();
+  const { userId, loading } = useCurrentUser();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const checkProfile = async () => {
-      if (!user) return; // Already handled by RequireAuth
+    if (loading || !userId) return; // Wait for user to load
 
+    const checkProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('user_id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
       if (error || !data) {
@@ -25,5 +26,5 @@ export default function useRequireProfile() {
     };
 
     checkProfile();
-  }, [user, navigate, location]);
+  }, [userId, loading, navigate, location]);
 }

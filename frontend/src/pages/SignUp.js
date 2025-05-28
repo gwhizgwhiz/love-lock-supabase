@@ -1,42 +1,44 @@
-import React, { useState }      from 'react';
-import { useNavigate }          from 'react-router-dom';
-import supabase                 from '../supabaseClient';
-import signupImg                from '../assets/signup_img.png';
+// src/pages/SignUp.jsx
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import signupImg from '../assets/signup_img.png';
 import '../App.css';
 
 export default function SignUp() {
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState(null);
-  const [phase, setPhase]       = useState('form'); // 'form' or 'verify'
-  const navigate                = useNavigate();
+  const [error, setError] = useState(null);
+  const [phase, setPhase] = useState('form'); // 'form' or 'verify'
+  const navigate = useNavigate();
 
-  const handleSignUp = async e => {
-  e.preventDefault();
-  setError(null);
-  try {
-    const { error } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    redirectTo: `${window.location.origin}/verify-email`
-  }
-});
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          redirectTo: `${window.location.origin}/verify-email`,
+        },
+      });
 
-    if (error) throw error;
-    setPhase('verify');
-  } catch (err) {
-    setError(err.message);
-  }
-};
+      if (error) throw error;
+      setPhase('verify');
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred.');
+    }
+  };
+
   if (phase === 'verify') {
     return (
       <div className="login-container signup-page">
         <div className="login-form">
           <h1>Check Your Email</h1>
           <p>
-            A confirmation link was sent to <strong>{email}</strong>.<br/>
-            Click it to confirm your account, then <a href="/login">log in</a>.
+            A confirmation link was sent to <strong>{email}</strong>.<br />
+            Click it to confirm your account, then <Link to="/login">log in</Link>.
           </p>
         </div>
       </div>
@@ -59,7 +61,7 @@ export default function SignUp() {
               autoComplete="email"
               className="input-field"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -67,17 +69,17 @@ export default function SignUp() {
             <label>Password:</label>
             <input
               type="password"
-              autoComplete="new-password"  // or "current-password" if for login
+              autoComplete="new-password"
               className="input-field"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
           <button type="submit" className="btn">Sign Up</button>
         </form>
         <p className="signup-link">
-          Already have an account? <a href="/login">Log in</a>
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
       </div>
     </div>

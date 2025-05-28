@@ -1,61 +1,61 @@
 // src/components/RequireAuth.jsx
-import React, { useState, useEffect } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import supabase from '../supabaseClient'
+import React, { useEffect, useState } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import useCurrentUser from '../hooks/useCurrentUser';
+import supabase from '../supabaseClient';
 
 export default function RequireAuth() {
-  const [session, setSession] = useState(undefined)
-  const [hasProfile, setHasProfile] = useState(undefined)
-  const location = useLocation()
+  const { userId, profile, loading: userLoading, error } = useCurrentUser();
+  const [emailConfirmed, setEmailConfirmed] = useState(undefined);
+  const [hasProfile, setHasProfile] = useState(undefined);
+  const location = useLocation();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
+    const checkStatus = async () => {
+      if (userLoading || !userId) return;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, current) => setSession(current)
-    )
-    return () => subscription.unsubscribe()
-  }, [])
-
-  useEffect(() => {
-    const checkProfile = async () => {
-      if (!session?.user) return
-      const { data, error } = await supabase
-        .from('person_of_interest')
-        .select('id')
-        .eq('created_by', session.user.id) // 🔥 Corrected field
-        .limit(1)
-
-      if (error) {
-        console.error('Error checking profile:', error)
-        setHasProfile(false)
-      } else {
-        setHasProfile(!!data.length)
+      // Check email confirmation
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setEmailConfirmed(false);
+        return;
       }
-    }
 
-    if (session?.user?.email_confirmed_at) {
-      checkProfile()
-    }
-  }, [session])
+      setEmailConfirmed(!!user.email_confirmed_at);
 
-  if (session === undefined || (session?.user?.email_confirmed_at && hasProfile === undefined)) {
-    return <div className="spinner">Loading...</div>
+      // Check profile existence
+      const { data, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (profileError) {
+        console.error('Error checking profile:', profileError);
+        setHasProfile(false);
+      } else {
+        setHasProfile(!!data.length);
+      }
+    };
+
+    checkStatus();
+  }, [userId, userLoading]);
+
+  if (userLoading || emailConfirmed === undefined || hasProfile === undefined) {
+    return <div className="spinner">Loading...</div>;
   }
 
-  if (!session) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+  if (!userId) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!session.user.email_confirmed_at) {
-    return <Navigate to="/verify-email" replace />
+  if (!emailConfirmed) {
+    return <Navigate to="/verify-email" replace />;
   }
 
-  if (hasProfile === false) {
-    return <Navigate to="/profile/edit" replace />
+  if (!hasProfile) {
+    return <Navigate to="/profile/edit" replace />;
   }
 
-  return <Outlet />
+  return <Outlet />;
 }

@@ -1,45 +1,41 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import supabase from '../supabaseClient'
-import useAuth from '../hooks/useAuth'
-import '../App.css'
+// src/pages/MyCirclesPage.jsx
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
+import useCurrentUser from '../hooks/useCurrentUser';
+import '../App.css';
 
 export default function MyCirclesPage() {
-  const navigate = useNavigate()
-  const { user, loading: authLoading } = useAuth()
+  const navigate = useNavigate();
+  const { userId, loading: userLoading } = useCurrentUser();
 
-  const [circles, setCircles] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [circles, setCircles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (authLoading) return
-    if (!user) {
-      setLoading(false)
-      setError(new Error('Not authenticated'))
-      return
-    }
+    if (userLoading || !userId) return;
 
     const loadCircles = async () => {
-      setLoading(true)
+      setLoading(true);
       const { data, error } = await supabase
         .from('circles')
         .select('*')
-        .eq('created_by', user.id)
+        .eq('created_by', userId);
 
       if (error) {
-        setError(error)
+        setError(error);
       } else {
-        setCircles(data || [])
+        setCircles(data || []);
       }
-      setLoading(false)
-    }
+      setLoading(false);
+    };
 
-    loadCircles()
-  }, [authLoading, user])
+    loadCircles();
+  }, [userId, userLoading]);
 
-  if (loading || authLoading) return <p>Loading your circles…</p>
-  if (error) return <p>Error: {error.message}</p>
+  if (loading || userLoading) return <p>Loading your circles…</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <main className="container">
@@ -68,5 +64,5 @@ export default function MyCirclesPage() {
         </div>
       )}
     </main>
-  )
+  );
 }
