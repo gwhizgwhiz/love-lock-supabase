@@ -23,12 +23,11 @@ export default function DashboardPage() {
     const loadDashboard = async () => {
       setIsLoading(true);
       try {
-        // Profile
-
+        
         // Profile
         const { data: prof, error: profErr } = await supabase
           .from('profiles')
-          .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, dating_preference, city, state, zip, is_public')
+          .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, age, dating_preference, city, state, zip, is_public')
           .eq('user_id', userId)
           .single();
 
@@ -40,10 +39,11 @@ export default function DashboardPage() {
 
         // Circles
         const { data: circ, error: circErr } = await supabase
-          .from('circle_members')
-          .select('circle_id, role, circles(name, created_by)')
-          .eq('user_id', userId);
+          .from('circles')
+          .select('*')
+          .eq('created_by', userId);
         if (circErr) throw circErr;
+        console.log('Fetched circles:', circ);
         setCircles(circ);
 
         // Interactions
@@ -73,39 +73,46 @@ export default function DashboardPage() {
       <h2>Welcome Back!</h2>
       <section className="profile-summary">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src={avatarUrl} alt="Avatar" className="avatar-menu-avatar" />
+          <img src={avatarUrl} alt="Avatar" className="avatar-menu-avatar" style={{ width: '60px', height: '60px' }}/>
           <div>
-            <p><strong>Name:</strong> {profile?.name || 'Not set'}</p>
-            <p><strong>Location:</strong> {profile?.city || ''}, {profile?.state || ''}</p>
-            <p><strong>Gender:</strong> {profile?.gender_identity || 'Not set'}</p>
-            <p><strong>Preferences:</strong> {profile?.dating_preference || 'Not set'}</p>
+            <p>{profile?.name || 'Not set'}</p>
+            <p>{profile?.city || ''}, {profile?.state || ''}</p>
+            <p>{profile?.gender_identity || 'Not set'}, {profile?.age || 'Not set'}</p>
+            {/* <p>Who Likes {profile?.dating_preference || 'Not set'}</p> */}
           </div>
         </div>
         {!profile?.id && <button className="btn-small" onClick={() => navigate('/profile/edit')}>Set Up Your Profile</button>}
       </section>
       <section className="circles-summary" style={{ marginTop: '2rem' }}>
-        <h3>Your Circles</h3>
-        {circles.length === 0 ? (
-          <p>You haven’t joined any circles yet. <button className="btn-small" onClick={() => navigate('/my-circles')}>Explore Circles</button></p>
-        ) : (
-          <ul className="member-list">
-            {circles.map(c => (
-              <li key={c.circle_id} className="member-item">
-                <span>{c.circles.name}</span>
-                <span className="badge">{c.role === 'moderator' ? 'Moderator' : c.circles.created_by === userId ? 'Creator' : 'Member'}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+  <h3>Your Circles</h3>
+  <button className="btn btn-small btn-outline" onClick={() => navigate('/my-circles')}>
+    Manage Circles
+  </button>
+  {circles.length === 0 ? (
+  <p>You haven’t created any circles yet.</p>
+) : (
+  <div className="circle-map" style={{ marginTop: '1rem' }}>
+    {circles.map(c => (
+      <div
+        key={c.id}
+        className="circle-item"
+        onClick={() => navigate(`/circles/${c.slug}`)}
+      >
+        <span className="circle-icon">{c.icon || '💬'}</span>
+        <div className="circle-name">{c.name}</div>
+      </div>
+    ))}
+  </div>
+)}
+</section>
       <section className="inbox-summary" style={{ marginTop: '2rem' }}>
         <h3>Inbox</h3>
-        <p>You have <strong>{inboxCount}</strong> messages. <button className="btn-small" onClick={() => navigate('/inbox')}>Go to Inbox</button></p>
+        <p>You have <strong>{inboxCount}</strong> messages. <button className="btn btn-small btn-outline" onClick={() => navigate('/inbox')}>Go to Inbox</button></p>
       </section>
       <section className="interactions-summary" style={{ marginTop: '2rem' }}>
         <h3>Your Logged Interactions</h3>
         {interactions.length === 0 ? (
-          <p>No interactions logged yet. <button className="btn-small" onClick={() => navigate('/rate-date')}>Log One</button></p>
+          <p>No interactions logged yet. <button className="btn btn-small btn-outline" onClick={() => navigate('/rate-date')}>Log One</button></p>
         ) : (
           <ul className="timeline">
             {interactions.map(i => (

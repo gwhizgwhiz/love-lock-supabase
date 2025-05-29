@@ -45,8 +45,7 @@ export default function Header() {
               </div>
               <button className={getButtonClass('/interactions')} onClick={() => navigate('/interactions')}>Interactions</button>
               <button className="btn-outline btn-small" onClick={() => navigate('/dashboard')}>Dashboard</button>
-              <button className={getButtonClass('/my-circles')} onClick={() => navigate('/my-circles')}>My Circles</button>
-
+              
               <AvatarMenu onSignOut={logoutFunction} />
             </>
           )}
