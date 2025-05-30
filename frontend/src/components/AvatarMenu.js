@@ -13,7 +13,7 @@ export default function AvatarMenu({ onSignOut }) {
   const profileLink = slug ? `/profiles/${slug}` : '/profile/edit';
 
   const menuItems = [
-    { label: 'My Profile',   to: profileLink },
+    { label: 'Edit Profile',   to: profileLink },
     { label: 'Settings',     to: '/settings' },
     { label: 'Preferences',  to: '/preferences' },
   ];

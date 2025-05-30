@@ -1,60 +1,62 @@
 // src/App.js
 
-import React, { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import RouteLoader from './components/RouteLoader'
-import Layout from './components/Layout'
-import RequireAuth from './components/RequireAuth'
-import RequireAdmin from './components/RequireAdmin'
-import RatingCriteriaAdmin from './components/RatingCriteriaAdmin'
+import RouteLoader from './components/RouteLoader';
+import Layout from './components/Layout';
+import RequireAuth from './components/RequireAuth';
+import RequireAdmin from './components/RequireAdmin';
+import RatingCriteriaAdmin from './components/RatingCriteriaAdmin';
 
-import HomePage from './HomePage'
-import LogIn from './pages/LogIn'
-import SignUp from './pages/SignUp'
-import VerifyEmail from './pages/VerifyEmail'
-import ResetRequest from './pages/ResetRequest'
-import ResetPassword from './pages/ResetPassword'
+import HomePage from './HomePage';
+import LogIn from './pages/LogIn';
+import SignUp from './pages/SignUp';
+import VerifyEmail from './pages/VerifyEmail';
+import ResetRequest from './pages/ResetRequest';
+import ResetPassword from './pages/ResetPassword';
 
-import DashboardPage from './pages/DashboardPage'
-import ProfileCreate from './pages/ProfileCreate'
-import ProfilesPage from './pages/ProfilesPage'
-import ProfileDetail from './pages/ProfileDetail'
-import ProfileEdit from './pages/ProfileEdit'
+import DashboardPage from './pages/DashboardPage';
+import ProfileCreate from './pages/ProfileCreate';
+import ProfileDetail from './pages/ProfileDetail';
+import ProfileEdit from './pages/ProfileEdit';
 
-import Compose from './pages/Compose'
-import Inbox from './pages/Inbox'
-import Thread from './pages/Thread'
+import Compose from './pages/Compose';
+import Inbox from './pages/Inbox';
+import Thread from './pages/Thread';
 
-import AddExperience from './components/AddExperience' // Optional: remove if deprecated
-import InteractionsPage from './pages/InteractionsPage'
-import Settings from './pages/Settings'
-import Preferences from './pages/Preferences'
-import MyCirclesPage from './pages/MyCirclesPage'
-import CircleDetailPage from './pages/CircleDetailPage'
+import AddExperience from './components/AddExperience'; // Optional: remove if deprecated
+import InteractionsPage from './pages/InteractionsPage';
+import POIForm from './components/POIForm';
+import Settings from './pages/Settings';
+import Preferences from './pages/Preferences';
+import MyCirclesPage from './pages/MyCirclesPage';
+import CircleDetailPage from './pages/CircleDetailPage';
 
-import Loading from './components/Loading' // loading component
+import PersonsOfInterest from './pages/PersonsOfInterest'; // ✅ New page for POIs
+
+import Loading from './components/Loading'; // loading component
 
 export default function App() {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🛠️  src/App.js has mounted')
+    console.log('🛠️  src/App.js has mounted');
 
-    const MIN_DURATION = 500
-    const start = Date.now()
+    const MIN_DURATION = 500;
+    const start = Date.now();
 
     Promise.resolve().then(() => {
-      const elapsed = Date.now() - start
-      const remaining = MIN_DURATION - elapsed
+      const elapsed = Date.now() - start;
+      const remaining = MIN_DURATION - elapsed;
 
       setTimeout(() => {
-        setIsLoading(false)
-      }, remaining > 0 ? remaining : 0)
-    })
-  }, [])
+        setIsLoading(false);
+      }, remaining > 0 ? remaining : 0);
+    });
+  }, []);
 
-  if (isLoading) return <Loading />
+  if (isLoading) return <Loading />;
 
   return (
     <BrowserRouter>
@@ -68,12 +70,15 @@ export default function App() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ResetRequest />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/profiles" element={<ProfilesPage />} />
+          <Route path="/persons" element={<PersonsOfInterest />} /> {/* 🔥 POI page */}
 
           {/* Protected */}
           <Route element={<RequireAuth />}>
             <Route path="/create-profile" element={<ProfileCreate />} />
-            <Route path="/profiles/:slug" element={<ProfileDetail />} />
+            <Route path="/profiles/:id" element={<ProfileDetail />} /> {/* Shared detail for profiles & POIs */}
+            <Route path="/persons" element={<PersonsOfInterest />} /> {/* New page for POIs */}
+            <Route path="/add-poi" element={<POIForm />} />
+
             <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/my-circles" element={<MyCirclesPage />} />
@@ -99,5 +104,5 @@ export default function App() {
         </Routes>
       </Layout>
     </BrowserRouter>
-  )
+  );
 }

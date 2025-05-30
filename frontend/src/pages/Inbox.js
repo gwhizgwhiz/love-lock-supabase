@@ -27,6 +27,7 @@ export default function Inbox() {
           .or(`user_one.eq.${userId},user_two.eq.${userId}`)
           .order('last_message_at', { ascending: false });
 
+
         if (threadsError) throw threadsError;
 
         // Map threads to include other user's profile info
@@ -48,7 +49,7 @@ export default function Inbox() {
 
             // Fetch unread count for this thread
             const { count, error: countError } = await supabase
-              .from('message')
+              .from('messages')
               .select('*', { count: 'exact', head: true })
               .eq('receiver_id', userId)
               .eq('message_thread_id', thread.id)

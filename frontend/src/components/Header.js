@@ -39,11 +39,10 @@ export default function Header() {
             </>
           ) : (
             <>
-              <button className={getButtonClass('/profiles')} onClick={() => navigate('/profiles')}>View Profiles</button>
+              <button className={getButtonClass('/persons')} onClick={() => navigate('/persons')}>View Profiles</button>
               <div style={{ position: 'relative' }}>
                 <button className={getButtonClass('/inbox')} onClick={() => navigate('/inbox')}>Inbox</button>
               </div>
-              <button className={getButtonClass('/interactions')} onClick={() => navigate('/interactions')}>Interactions</button>
               <button className="btn-outline btn-small" onClick={() => navigate('/dashboard')}>Dashboard</button>
               
               <AvatarMenu onSignOut={logoutFunction} />

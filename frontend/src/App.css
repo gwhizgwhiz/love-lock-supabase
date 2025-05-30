@@ -75,8 +75,9 @@ button:hover {
 
 /* smaller button */
 .btn-small {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem .5rem;
   font-size: 0.875rem;
+  min-width: 120px; /* Ensures visual consistency */
 }
 
 /* new: outline (secondary) variant */
@@ -96,6 +97,7 @@ button:hover {
   background-color: var(--brand-red);
   color: white;
   border: 2px solid var(--brand-red);
+  min-width: 120px; /* Ensures visual consistency */
 }
 
 .btn-inverse:hover {
@@ -197,8 +199,8 @@ select {
 .header .avatar {
   width: auto; height: 40px;
   border-radius: 50%;
-  background: var(--brand-red);
-  color: white;
+  background: white;
+  border: 2px solid var(--brand-red);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -402,6 +404,8 @@ select {
   width: 80px;
   height: 80px;
   border-radius: 50%;
+  background: white;
+  border: 2px solid var(--brand-red);
   object-fit: cover;
   margin-bottom: 0.5rem;
 }
@@ -542,6 +546,8 @@ select {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  background: white;
+  border: 2px solid var(--brand-red);
   display: block;
 }
 
@@ -779,7 +785,9 @@ select {
   transition: transform 0.2s;
 }
 .circle-item:hover {
-  transform: scale(1.1);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background-color: #fff9f9;
 }
 .circle-item .circle-icon {
   font-size: 1.5rem;
@@ -803,4 +811,160 @@ select {
   padding: 0.2rem 0.5rem;
   margin-left: 0.5rem;
   border-radius: 4px;
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+  padding: 2rem 1rem;
+}
+
+.dashboard-heading {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--brand-red-dark);
+}
+
+.dashboard-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.avatar-large {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--brand-red);
+}
+
+.profile-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.circle-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.circle-item {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-red);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.85rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.circle-item:hover {
+  transform: scale(1.05);
+  background-color: #fff5f5;
+}
+
+.circle-icon {
+  font-size: 1.5rem;
+}
+
+.timeline li {
+  background: #fafafa;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.timeline li:hover {
+  background: #fceeee;
+}
+
+.dashboard-section {
+  background: #fff;  /* or a very light shade: #fdfdfd */
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.circle-name {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* New: POI Card Style for Persons of Interest */
+.poi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.poi-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.poi-card:hover {
+  transform: translateY(-4px);
+  background-color: #fff5f5;
+}
+
+.poi-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--brand-red);
+  margin-bottom: 0.5rem;
+}
+
+.poi-name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.poi-location {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.poi-trust {
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
 }
