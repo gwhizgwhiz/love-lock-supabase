@@ -1,28 +1,29 @@
-/* --- App.css --- */
+/* ============================================= */
+/*               LoveLock - App.css              */
+/* ============================================= */
 
-/* 1. Font Import & Root Variables */
-/* Playfair Display for the site title */
+/* === 1. Fonts & Variables === */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
-/* Arial as your body/text fallback */
 @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 
 :root {
-  --brand-red:       #C42F33;
-  --brand-red-dark:  #A32829;
-  --text-primary:    #333;
-  --text-secondary:  #555;
-  --bg-page:         #f4f4f9;
-  --bg-card:         #ffffff;
-  --border-light:    rgba(0, 0, 0, 0.05);
-  --site-title-font: 'Playfair Display', serif;
+  --brand-red: #C42F33;
+  --brand-red-dark: #A32829;
+  --text-primary: #333;
+  --text-secondary: #555;
+  --bg-page: #f4f4f9;
+  --bg-card: #ffffff;
+  --border-light: rgba(0, 0, 0, 0.05);
+  --site-title-font: 'mPlayfair Display', serif;
 }
 
-/* 2. Global Reset & Base */
+/* === 2. Global Reset & Base === */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   font-family: 'Arial', sans-serif;
   background-color: var(--bg-page);
@@ -30,33 +31,56 @@ body {
   min-height: 100vh;
   line-height: 1.5;
 }
+
 a {
   text-decoration: none;
   color: inherit;
 }
 
-/* Page headings font */
-/*h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--site-title-font);
 }
 
-/* 3. Reusable Container */
-.container {
+/* === 3. Containers & Cards === */
+.container,
+.dashboard-container {
   max-width: 800px;
   margin: 2rem auto;
-  padding: 0 1rem;
+  padding: 1rem 1rem;
   background: var(--bg-card);
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   border-top: 4px solid var(--brand-red);
 }
 
-/* 4. Buttons */
+.dashboard-section {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.site-name {
+  margin-left: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--site-title-font);
+}
+
+/* === 4. Buttons === */
 .btn,
 button {
-  display: inline-flex;               /* center text/icon */
-  align-items: center;                
-  justify-content: center;            
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   border: none;
@@ -65,7 +89,6 @@ button {
   color: white;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
-  text-align: center;                 /* fallback */
 }
 
 .btn:hover,
@@ -73,14 +96,12 @@ button:hover {
   background-color: var(--brand-red-dark);
 }
 
-/* smaller button */
 .btn-small {
-  padding: 0.5rem .5rem;
+  padding: 0.5rem 0.5rem;
   font-size: 0.875rem;
-  min-width: 120px; /* Ensures visual consistency */
+  min-width: 120px;
 }
 
-/* new: outline (secondary) variant */
 .btn-outline {
   background-color: transparent;
   color: var(--brand-red);
@@ -92,12 +113,11 @@ button:hover {
   color: white;
 }
 
-/* Inverse outline: default red fill, hover→white */
 .btn-inverse {
   background-color: var(--brand-red);
   color: white;
   border: 2px solid var(--brand-red);
-  min-width: 120px; /* Ensures visual consistency */
+  min-width: 120px;
 }
 
 .btn-inverse:hover {
@@ -105,20 +125,14 @@ button:hover {
   color: var(--brand-red);
 }
 
-/* 5. Forms & Inputs */
-.form,
-.settings-form,
-.profile-edit-container form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+/* === Forms & Inputs: General === */
 .form label,
 .settings-form label {
   display: flex;
   flex-direction: column;
   font-weight: 500;
 }
+
 input,
 textarea,
 select {
@@ -128,36 +142,99 @@ select {
   border-radius: 4px;
   background: white;
 }
-.input-field {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background: #f9f9f9;
-}
-.input-field:focus {
-  outline: none;
-  border-color: var(--brand-red);
-  background: white;
-}
-.input-group {
+
+/* Profile Edit Specific */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 1rem;
 }
-.input-group label {
-  margin-bottom: 0.5rem;
-  color: var(--text-secondary);
+
+.profile-edit-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  border-top: 4px solid var(--brand-red);
 }
 
-/* 6. Spinners & Empty States */
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
 
-/* src/Loading.css */
+.profile-edit-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-container label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+/* Profile Edit Horizontal Form Rows */
+.profile-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;  /* Optional: limits form width for a clean look */
+  margin: 0 auto;    /* Center the form */
+}
+
+.profile-edit-fields label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.profile-edit-fields input,
+.profile-edit-fields select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  width: 100%;
+}
+
+.profile-edit-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-container label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.profile-edit-container button.btn {
+  margin-top: 1.5rem;
+  width: 200px;
+}
+
+/* === 6. Spinners & Animations === */
 .loading-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #ffffff; /* Adjust background color as needed */
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: white;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -167,23 +244,19 @@ select {
 }
 
 .loading-logo {
-  width: 100px; /* Adjust size as needed */
-  height: 100px;
-  animation: spin 1.5s linear infinite; /* Optional: adds a spinning animation */
+  width: 100px; height: 100px;
+  animation: spin 1.5s linear infinite;
 }
 
 @keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
+  to { opacity: 1; }
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-
-/* 7. Header & Home */
+/* === 7. Header & Navigation === */
 .header {
   display: flex;
   justify-content: space-between;
@@ -195,325 +268,98 @@ select {
   top: 0;
   z-index: 10;
 }
-.header .logo { width: 50px; }
-.header .avatar {
-  width: auto; height: 40px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid var(--brand-red);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  cursor: pointer;
-}
-.home-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-.banner {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-  color: white;
-  padding: 4rem 2rem;
-}
-.banner h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-.banner p {
-  font-size: 1.25rem;
-  max-width: 600px;
-  line-height: 1.5;
-}
-.home-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-.home-buttons .btn {
-  background: white;
-  color: var(--brand-red);
-}
-.home-buttons .btn:hover {
-  background: rgba(255,255,255,0.8);
-  color: var(--brand-red-dark);
+
+.header .logo {
+  width: 50px;
 }
 
-/* 8. Login & Signup Layout (identical) */
-.login-container,
-.signup-page {
-  display: grid;
-  grid-template-columns: 1fr 1fr;     /* two equal columns */
-  grid-template-rows: 1fr;            /* one full-height row */
-  gap: 2rem;                          /* space between columns */
-  padding: 2rem;                      /* outer padding */
-  height: calc(100vh - 64px);         /* full viewport minus header */
-  background: var(--bg-page);
-}
-
-@media (max-width: 768px) {
-  .login-container,
-  .signup-page {
-    display: block;
-    padding: 1rem;
-    height: auto;
-    gap: 1rem;
-  }
-}
-
-/* IMAGE CARD */
-.login-image,
-.signup-page .login-image {
-  padding: 2rem;                             /* match form padding */
-  background: var(--bg-card);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  overflow: hidden;
-}
-.login-image .login-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* FORM CARD */
-.login-form,
-.signup-page .login-form {
-  display: flex;
-  flex-direction: column;                    /* stack heading + fields */
-  justify-content: center;                   /* vertical center */
-  align-items: stretch;
-  padding: 2rem;                             /* same as image */
-  background: var(--bg-card);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* constrain inner form width */
-.login-form > *,
-.signup-page .login-form > * {
-  max-width: 400px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-/* LEFT-ALIGN THE HEADINGS */
-.login-form h1,
-.signup-page .login-form h1 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  text-align: left;                          /* was centered before */
-  color: var(--text-primary);
-}
-
-/* SPACING BETWEEN FIELDS */
-.login-form .input-group,
-.signup-page .login-form .input-group {
-  margin-bottom: 1rem;
-}
-
-/* RED LINKS + LEFT-ALIGN “already have an account” */
-.login-form .signup-link,
-.signup-page .login-form .signup-link {
-  margin-top: 1.5rem;
-  text-align: left;
-}
-.login-form .signup-link a,
-.signup-page .login-form .signup-link a {
-  color: var(--brand-red);
-}
-
-/* 9. Outlined Buttons (Login/Signup) */
-.login-form .btn,
-.signup-page .login-form .btn {
-  background: transparent !important;
-  border: 2px solid var(--brand-red) !important;
-  color: var(--brand-red) !important;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  transition: background-color 0.2s, color 0.2s;
-}
-.login-form .btn:hover,
-.signup-page .login-form .btn:hover {
-  background-color: var(--brand-red) !important;
-  color: #fff !important;
-}
-
-/* 10. Inbox & Thread */
-.inbox-container {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-  background: var(--bg-page);
-}
-.inbox-card {
-  background: white;
-  border-top: 4px solid var(--brand-red);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  max-width: 600px;
-  width: 100%;
-  padding: 1.5rem;
-}
-.inbox-card h1 { color: var(--brand-red); margin-bottom: 1rem; }
-.message-list {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  row-gap: 1rem;
-}
-.message-item {
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
-  padding: 1rem;
-  transition: background 0.2s;
-}
-.message-item:hover { background: #fcf2f2; }
-.message-item:nth-child(odd) { background: #fcf2f2; }
-.message-item h2 { margin-bottom: 0.5rem; font-size: 1.1rem; }
-.message-item p { color: var(--text-secondary); }
-
-/* 11. Profiles Grid & Cards */
-.profiles-container { padding: 2rem 0; }
-.search-bar input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; }
-.profiles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-.profile-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
-.profile-card:hover { transform: translateY(-4px); }
-.profile-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid var(--brand-red);
-  object-fit: cover;
-  margin-bottom: 0.5rem;
-}
-.trust-score { margin: 0.5rem 0; }
-.score-number { margin-left: 0.25rem; color: var(--text-secondary); }
-
-/* 12. Profile Detail */
-.detail-container { padding: 2rem 1rem; }
-.hero {
-  display: flex;
-  align-items: center;
-  background-color: hsl(0,100%,96%);
-  color: #333;
-  padding: 2rem;
-  border-radius: 8px;
-  gap: 1.5rem;
-}
-.hero-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.hero-info h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-.trust-badge { font-size: 1.25rem; margin: 0.5rem 0; }
-.hero-stats span { margin-right: 1rem; font-size: 0.9rem; }
-.chart-placeholder {
-  height: 200px;
-  background: #fafafa;
-  border: 1px dashed #ccc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  margin: 1.5rem 0;
-}
-.timeline ul { list-style: none; padding: 0; margin: 0; }
-.timeline li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #eee;
-}
-.timeline li:last-child { border-bottom: none; }
-.timeline li.positive { background: #e6ffed; }
-.timeline li.negative { background: #ffe6e6; }
-.timeline li.neutral  { background: #eef2ff; }
-
-/* 13. Profile Edit & Settings */
-.profile-edit-container,
-.settings-container { padding: 2rem 1rem; }
-.avatar-preview {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-top: 0.5rem;
-}
-
-/* Header Avatar Dropdown */
 .header .header-right {
   position: relative;
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-.dropdown-menu {
-  position: absolute;
-  top: 60px;
-  right: 0;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  border-radius: 0.25rem;
-  overflow: hidden;
-  z-index: 20;
-  min-width: 160px;
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 }
-.dropdown-item {
+
+/* === 8. Avatar & Menus === */
+.header .avatar,
+.avatar-menu-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--brand-red);
+  object-fit: cover;
   display: block;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  color: #333;
-  font-size: 0.9rem;
-  text-align: left;
-  transition: background 0.2s;
 }
-.dropdown-item:hover { background: #f5f5f5; }
+
+.avatar-menu {
+  position: relative;
+  display: inline-block;
+  text-align: left;
+}
+
+.avatar-menu-button {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  cursor: pointer;
+}
+
+.avatar-menu-button:hover,
+.avatar-menu-button:focus {
+  background: transparent !important;
+  outline: none !important;
+}
+
+.avatar-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 160px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 4px 0;
+}
+
+.avatar-menu-item,
+.dropdown-item,
 .logout-item {
   display: block;
   width: 100%;
   padding: 0.75rem 1rem;
-  background: none;
-  border: none;
+  font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
-  color: var(--brand-red);
-  font-size: 0.9rem;
   transition: background 0.2s;
 }
-.logout-item:hover { background: #fdecea; }
 
-/* 14. NavButton Wrapper & Unread Badge */
-/* Make header links wrapper relative for badge positioning */
-.header .header-right a {
-  position: relative;
+.avatar-menu-item:hover,
+.dropdown-item:hover,
+.logout-item:hover {
+  background: #f5f5f5;
 }
 
-/* Unread count badge */
+.logout-item {
+  background: none;
+  border: none;
+  color: var(--brand-red);
+}
+
+.logout-item:hover {
+  background: #fdecea;
+}
+
 .badge {
   position: absolute;
   top: -0.25rem;
@@ -526,182 +372,165 @@ select {
   line-height: 1;
 }
 
-/* app.css */
-
-/* Container */
-.avatar-menu {
-  position: relative;
-  display: inline-block;
-  text-align: left;
+/* === 9. Profiles, Circles, POI Cards === */
+.profiles-container {
+  padding: 2rem 0;
 }
 
-/* Avatar trigger button */
-.avatar-menu-button {
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-.avatar-menu-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid var(--brand-red);
-  display: block;
-}
-
-/* Dropdown panel */
-.avatar-menu-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);  /* 8px space below the avatar */
-  right: 0;
-  width: 160px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  padding: 4px 0;
-}
-
-/* Items */
-.avatar-menu-item {
-  display: block;
+.search-bar input {
   width: 100%;
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #333;
-  text-decoration: none;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-}
-.avatar-menu-item:hover {
-  background-color: #f5f5f5;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
 
-/* Avatar‑specific overrides (place at the end of App.css) */
-.avatar-menu-button {
-  /* kill the .btn,button defaults */
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  /* make the button itself a perfect circle */
-  border-radius: 50% !important;
-  /* clip the image to the circular button */
-  overflow: hidden !important;
-  cursor: pointer;
+.profiles-grid,
+.poi-grid,
+.circle-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
-/* remove any hover/focus background or outline */
-.avatar-menu-button:hover,
-.avatar-menu-button:focus {
-  background: transparent !important;
-  outline: none !important;
+.profiles-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
 }
 
-/* ensure the <img> fills the circle and stays round */
-.avatar-menu-avatar {
-  display: block;
-  width: 40px;      /* or whatever diameter you prefer */
-  height: 40px;
-  object-fit: cover;
-  border-radius: 50%;
+.poi-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
 
-/* header site name */
-
-.header-brand {
+.circle-grid {
   display: flex;
-  align-items: center;
-  text-decoration: none;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-.site-name {
-  margin-left: 0.5rem;
-  font-size: 1.50rem;
-  font-weight: 700;
-  font-family: var(--site-title-font);
+.profile-card,
+.poi-card,
+.circle-item {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, background-color 0.2s;
+  position: relative;
 }
 
-/* Circle Detail Header */
-.circle-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-.circle-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.circle-icon {
-  font-size: 1.5rem;
+.profile-card:hover,
+.poi-card:hover,
+.circle-item:hover {
+  transform: translateY(-4px);
+  background-color: #fff5f5;
 }
 
-.circle-detail {
-  padding-bottom: .5rem;
-}
-
-/* Circle Info */
-.circle-info {
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-}
-
-/* Creator section */
-.circle-creator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-.circle-creator-avatar {
-  width: 32px;
-  height: 32px;
+.profile-avatar,
+.poi-avatar,
+.circle-creator-avatar,
+.member-avatar {
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--brand-red);
 }
 
-/* Members list */
-.member-list {
-  list-style: none;
-  padding: 0;
-  margin-top: .5rem;
+.profile-avatar,
+.poi-avatar {
+  width: 70px;
+  height: 70px;
+  margin-bottom: 0.5rem;
 }
-.member-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+
+.avatar-large {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--brand-red);
 }
+
 .member-avatar {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
 }
 
-.member-remove-button {
-  margin-left: 1rem;
+.circle-creator-avatar {
+  width: 32px;
+  height: 32px;
 }
 
-.circle-invite-button {
-  margin-top: 0;
-  background-color: transparent;
+.poi-card .badge {
+  background-color: #ffd700;
+  color: #333;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.poi-card:hover .badge {
+  opacity: 1;
+}
+
+/* === 10. Inbox & Message Cards === */
+.inbox-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--bg-page);
+}
+
+.inbox-card {
+  background: white;
+  border-top: 4px solid var(--brand-red);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  max-width: 600px;
+  width: 100%;
+  padding: 1.5rem;
+}
+
+.inbox-card h1 {
   color: var(--brand-red);
-  border: 2px solid var(--brand-red);
-  transition: background-color 0.2s, color 0.2s;
+  margin-bottom: 1rem;
 }
 
-.circle-invite-button:hover {
-  background-color: var(--brand-red);
-  color: white;
+.message-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  row-gap: 1rem;
 }
 
+.message-item {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1rem;
+  transition: background 0.2s;
+}
+
+.message-item:hover {
+  background: #fcf2f2;
+}
+
+.message-item:nth-child(odd) {
+  background: #fcf2f2;
+}
+
+.message-item h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.message-item p {
+  color: var(--text-secondary);
+}
+
+/* === 11. Toasts & Notifications === */
 .toast {
   padding: 0.75rem 1rem;
   border-radius: 4px;
@@ -709,34 +538,109 @@ select {
   font-weight: 500;
   text-align: center;
 }
+
 .toast-success {
   background-color: #e6ffed;
   color: #05672a;
 }
+
 .toast-error {
   background-color: #ffe6e6;
   color: #9b1c1c;
 }
 
+/* === 12. Timeline & Interaction Logs === */
+.timeline ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.timeline li {
+  background: #fafafa;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+}
+
+.timeline li:last-child {
+  border-bottom: none;
+}
+
+.timeline li.positive {
+  background: #e6ffed;
+}
+
+.timeline li.negative {
+  background: #ffe6e6;
+}
+
+.timeline li.neutral {
+  background: #eef2ff;
+}
+
+.timeline li:hover {
+  background: #fceeee;
+}
+
+/* === 13. Profile Detail & Hero === */
+.detail-container {
+  padding: 2rem 1rem;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  background-color: hsl(0,100%,96%);
+  color: #333;
+  padding: 2rem;
+  border-radius: 8px;
+  gap: 1.5rem;
+}
+
+.hero-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--brand-red);
+}
+
+.hero-info h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.trust-badge {
+  font-size: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.hero-stats span {
+  margin-right: 1rem;
+  font-size: 0.9rem;
+}
+
+.chart-placeholder {
+  height: 200px;
+  background: #fafafa;
+  border: 1px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  margin: 1.5rem 0;
+}
+
+/* === 14. Invite Inputs & Suggestions === */
 .invite-control {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   position: relative;
-}
-
-.invite-input {
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background: #f9f9f9;
-}
-
-.invite-input:focus {
-  outline: none;
-  border-color: var(--brand-red);
-  background: #fff;
 }
 
 .invite-suggestions {
@@ -757,19 +661,12 @@ select {
   padding: 0.5rem 1rem;
   cursor: pointer;
 }
+
 .invite-suggestion-item:hover {
   background: var(--bg-page);
 }
 
-/* Free-form grid container for circles */
-.circle-map {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
+/* === 15. Circle Items & Layout === */
 .circle-item {
   position: relative;
   width: 100px;
@@ -784,14 +681,17 @@ select {
   cursor: pointer;
   transition: transform 0.2s;
 }
+
 .circle-item:hover {
   transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   background-color: #fff9f9;
 }
+
 .circle-item .circle-icon {
   font-size: 1.5rem;
 }
+
 .circle-item .circle-name {
   margin-top: 0.25rem;
   font-size: 0.875rem;
@@ -803,117 +703,76 @@ select {
   animation: jitter 0.6s ease-in-out 1;
 }
 
-.badge {
-  background-color: #ffd700; /* Gold */
-  color: #333;
-  font-size: 0.75rem;
-  font-weight: bold;
-  padding: 0.2rem 0.5rem;
-  margin-left: 0.5rem;
-  border-radius: 4px;
-}
-
-/* Dashboard Styles */
-.dashboard-container {
-  padding: 2rem 1rem;
-}
-
-.dashboard-heading {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  color: var(--brand-red-dark);
-}
-
-.dashboard-section {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.section-header {
+.circle-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
 }
 
-.profile-header {
+.circle-title {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.avatar-large {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  object-fit: cover;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid var(--brand-red);
-}
-
-.profile-info h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.circle-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.circle-item {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  border: 2px solid var(--brand-red);
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.85rem;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
-}
-
-.circle-item:hover {
-  transform: scale(1.05);
-  background-color: #fff5f5;
+  gap: 0.5rem;
 }
 
 .circle-icon {
   font-size: 1.5rem;
 }
 
-.timeline li {
-  background: #fafafa;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
+.circle-detail {
+  padding-bottom: 0.5rem;
+}
+
+.circle-info {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.circle-creator {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.timeline li:hover {
-  background: #fceeee;
+.member-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
 }
 
-.dashboard-section {
-  background: #fff;  /* or a very light shade: #fdfdfd */
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.member-remove-button {
+  margin-left: 1rem;
+}
+
+.circle-invite-button {
+  margin-top: 0;
+  background-color: transparent;
+  color: var(--brand-red);
+  border: 2px solid var(--brand-red);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.circle-invite-button:hover {
+  background-color: var(--brand-red);
+  color: white;
+}
+
+/* === 16. Misc: Circle Map & Badge === */
+.circle-map {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
 }
 
 .circle-name {
@@ -922,49 +781,12 @@ select {
   text-overflow: ellipsis;
 }
 
-/* New: POI Card Style for Persons of Interest */
-.poi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-.poi-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s, background-color 0.2s;
-}
-
-.poi-card:hover {
-  transform: translateY(-4px);
-  background-color: #fff5f5;
-}
-
-.poi-avatar {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--brand-red);
-  margin-bottom: 0.5rem;
-}
-
-.poi-name {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.poi-location {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-}
-
-.poi-trust {
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+.badge {
+  background-color: #ffd700;
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.2rem 0.5rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
 }

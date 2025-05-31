@@ -56,7 +56,14 @@ export default function PersonsOfInterestPage() {
     (`${p.city}, ${p.state}`).toLowerCase().includes(term)
   );
 
-  if (loading || isLoading) return <div className="spinner">Loading…</div>;
+  if (loading || isLoading) {
+  return (
+    <div className="loading-container">
+      <div className="loading-logo" />
+    </div>
+);
+}
+
   if (error) return <p className="empty-state">{error}</p>;
 
   const Hearts = ({ score }) => (
@@ -84,15 +91,18 @@ export default function PersonsOfInterestPage() {
         <p className="empty-state">No persons of interest found.</p>
       ) : (
         <div className="poi-grid">
-            {filteredPois.map(p => (
-                <Link key={p.id} to={`/profiles/${p.id}`} className="poi-card">
-                <img src={p.avatar_url} alt={p.name || 'POI'} className="poi-avatar" />
-                <div className="poi-name">{p.name || 'Unnamed'}</div>
-                <div className="poi-trust">Trust: {p.trust_score.toFixed(1)}</div>
-                <div className="poi-location">{p.city || '—'}, {p.state}</div>
-                </Link>
-            ))}
-        </div>
+  {filteredPois.map(p => (
+    <Link key={p.id} to={`/profiles/${p.id}`} className="poi-card">
+    <div className="poi-badge-container">
+        {p.createdBy === userId && <span className="badge">This is you</span>}
+    </div>
+    <img src={p.avatar_url} alt={p.name || 'POI'} className="poi-avatar" />
+    <div className="poi-name">{p.name || 'Unnamed'}</div>
+    <div className="poi-trust">Trust: {p.trust_score.toFixed(1)}</div>
+    <div className="poi-location">{p.city || '—'}, {p.state}</div>
+    </Link>
+    ))}
+    </div>
       )}
     </div>
   );

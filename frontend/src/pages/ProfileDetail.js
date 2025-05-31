@@ -22,34 +22,23 @@ export default function ProfileDetailPage() {
     }
 
     const fetchProfile = async () => {
-      setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          user_id,
-          name,
-          slug,
-          main_alias,
-          avatar_url,
-          trust_score,
-          gender_identity,
-          dating_preference,
-          city,
-          state,
-          is_public
-        `)
-        .eq('id', id)
-        .single();
+  setLoading(true);
+  const { data, error: fetchError } = await supabase
+    .from('person_of_interest')
+    .select('*')
+    .eq('id', id)
+    .eq('is_public', true)
+    .single(); // 🚀 Get exactly one record or error
 
-      if (fetchError || !data) {
-        setError('Profile not found or is private.');
-      } else {
-        const avatar = await resolveAvatarUrl(data.avatar_url);
-        setProfile({ ...data, avatar_url: avatar });
-      }
-      setLoading(false);
-    };
+  if (fetchError || !data) {
+    setError('Profile not found or is private.');
+  } else {
+    const avatar = await resolveAvatarUrl(data.avatar_url);
+    setProfile({ ...data, avatar_url: avatar });
+  }
+  setLoading(false);
+};
+
 
     fetchProfile();
   }, [id]);

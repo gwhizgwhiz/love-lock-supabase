@@ -72,7 +72,13 @@ export default function DashboardPage() {
     loadDashboard();
   }, [loading, userId]);
 
-  if (loading || isLoading) return <div className="spinner">Loading…</div>;
+  if (loading || isLoading) {
+  return (
+    <div className="loading-container">
+      <div className="loading-logo" />
+    </div>
+  );
+}
 
   return (
     <div className="container dashboard-container">
@@ -92,6 +98,14 @@ export default function DashboardPage() {
 
   <section className="dashboard-section">
     <div className="section-header">
+      <h3>Inbox</h3>
+      <button className="btn btn-small btn-outline" onClick={() => navigate('/inbox')}>Go to Inbox</button>
+    </div>
+    <p>You have <strong>{inboxCount}</strong> unread messages.</p>
+  </section>
+
+  <section className="dashboard-section">
+    <div className="section-header">
       <h3>Your Circles</h3>
       <button className="btn btn-small btn-outline" onClick={() => navigate('/my-circles')}>Manage Circles</button>
     </div>
@@ -107,14 +121,6 @@ export default function DashboardPage() {
         ))}
       </div>
     )}
-  </section>
-
-  <section className="dashboard-section">
-    <div className="section-header">
-      <h3>Inbox</h3>
-      <button className="btn btn-small btn-outline" onClick={() => navigate('/inbox')}>Go to Inbox</button>
-    </div>
-    <p>You have <strong>{inboxCount}</strong> unread messages.</p>
   </section>
 
   <section className="dashboard-section">

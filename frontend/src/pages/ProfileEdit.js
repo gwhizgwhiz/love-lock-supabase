@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
 import defaultAvatar from '../assets/default-avatar.png';
-import uploadAvatar from '../lib/uploadAvatar'; // New helper
+import uploadAvatar from '../lib/uploadAvatar';
 import '../App.css';
 
 export default function ProfileEdit() {
@@ -17,7 +17,6 @@ export default function ProfileEdit() {
   } = useCurrentUser();
   const navigate = useNavigate();
 
-  // Form state
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [preference, setPreference] = useState('');
@@ -25,11 +24,8 @@ export default function ProfileEdit() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zip, setZip] = useState('');
-
-  // Avatar state
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(defaultAvatar);
-
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -81,7 +77,6 @@ export default function ProfileEdit() {
       };
 
       let error;
-
       if (profile) {
         const { error: updateErr } = await supabase
           .from('profiles')
@@ -105,32 +100,33 @@ export default function ProfileEdit() {
     }
   };
 
-  if (authLoading) return <div className="spinner">Loading…</div>;
+  if (authLoading) return <div className="loading-container"><div className="loading-logo" /></div>;
   if (authError) return <p className="error-message">{authError}</p>;
 
   return (
-    <div className="container profile-edit-container">
-      <h2>{profile ? 'Edit Your Profile' : 'Create Your Profile'}</h2>
-      {error && <p className="error-message">{error}</p>}
+  <div className="container profile-edit-container">
+  <section className='dashboard-section'>
+    <h2 className="dashboard-heading">{profile ? 'Edit Your Profile' : 'Create Your Profile'}</h2>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <label>
-          Display Name
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-          />
+    {error && <p className="error-message">{error}</p>}
+
+    <form className="profile-edit-form" onSubmit={handleSubmit}>
+      <div className="profile-edit-avatar">
+        <img src={avatarPreview} alt="Avatar preview" className="avatar-large" />
+        <div className="upload-container">
+          <label>
+            Upload New Photo
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+          </label>
+        </div>
+      </div>
+
+      <div className="profile-edit-fields">
+        <label>Name
+          <input type="text" value={name} onChange={e => setName(e.target.value)} required />
         </label>
-
-        <label>
-          Gender Identity
-          <select
-            value={gender}
-            onChange={e => setGender(e.target.value)}
-            required
-          >
+        <label>Gender Identity
+          <select value={gender} onChange={e => setGender(e.target.value)} required>
             <option value="">Select gender</option>
             <option>Male</option>
             <option>Female</option>
@@ -139,13 +135,8 @@ export default function ProfileEdit() {
             <option>Other</option>
           </select>
         </label>
-
-        <label>
-          Dating Preference
-          <select
-            value={preference}
-            onChange={e => setPreference(e.target.value)}
-          >
+        <label>Dating Preference
+          <select value={preference} onChange={e => setPreference(e.target.value)}>
             <option value="">Select preference</option>
             <option>Men</option>
             <option>Women</option>
@@ -155,67 +146,27 @@ export default function ProfileEdit() {
             <option>Other</option>
           </select>
         </label>
-
-        <label>
-          Age
-          <input
-            type="number"
-            min="18"
-            max="120"
-            value={age}
-            onChange={e => setAge(e.target.value)}
-          />
+        <label>Age
+          <input type="number" min="18" max="120" value={age} onChange={e => setAge(e.target.value)} />
         </label>
-
-        <label>
-          City
-          <input
-            type="text"
-            value={city}
-            onChange={e => setCity(e.target.value)}
-          />
+        <label>City
+          <input type="text" value={city} onChange={e => setCity(e.target.value)} />
         </label>
-
-        <label>
-          State
-          <input
-            type="text"
-            value={state}
-            onChange={e => setState(e.target.value)}
-          />
+        <label>State
+          <input type="text" value={state} onChange={e => setState(e.target.value)} />
         </label>
-
-        <label>
-          Zip Code
-          <input
-            type="text"
-            value={zip}
-            onChange={e => setZip(e.target.value)}
-          />
+        <label>Zip Code
+          <input type="text" value={zip} onChange={e => setZip(e.target.value)} />
         </label>
+      </div>
 
-        <label>
-          Avatar
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-        </label>
-        <img
-          src={avatarPreview}
-          alt="Avatar preview"
-          className="avatar-preview"
-        />
+      <button type="submit" className="btn" disabled={saving}>
+        {saving ? 'Saving…' : 'Save Profile'}
+      </button>
+    </form>
+    </section>
+  </div>
+  
+);
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={saving}
-        >
-          {saving ? 'Saving…' : 'Save Profile'}
-        </button>
-      </form>
-    </div>
-  );
 }
