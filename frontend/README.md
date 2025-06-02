@@ -65,7 +65,6 @@ LOVE-LOCK-SUPABASE/
 │   ├── src/
 │   │   ├── assets/
 │   │   ├── components/
-│   │   │   ├── AddExperience.js
 │   │   │   ├── AvatarMenu.js
 │   │   │   ├── CircleForm.js
 │   │   │   ├── ErrorBoundary.js

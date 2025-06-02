@@ -12,6 +12,7 @@
     "@supabase/supabase-js": "^2.49.4",
     "axios": "^1.9.0",
     "lodash.debounce": "^4.0.8",
+    "lucide-react": "^0.511.0",
     "nth-check": "^2.1.1",
     "postcss": "^8.5.3",
     "react": "^19.1.0",

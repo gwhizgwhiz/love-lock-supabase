@@ -4,10 +4,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import useCurrentUser from '../hooks/useCurrentUser';
 import supabase from '../supabaseClient';
 import resolveAvatarUrl from '../lib/resolveAvatarUrl';
+import TrustDisplay from '../components/TrustDisplay';
 import '../App.css';
 
 export default function ProfileDetailPage() {
-  const { userId, loading: userLoading } = useCurrentUser();
+  const { loading: userLoading } = useCurrentUser();
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -76,10 +77,9 @@ export default function ProfileDetailPage() {
           {(profile.city || profile.state) && <p>📍 {profile.city}, {profile.state}</p>}
           {profile.gender_identity && <p>Gender: {profile.gender_identity}</p>}
           {profile.dating_preference && <p>Looking for: {profile.dating_preference}</p>}
-          {profile.trust_score !== null && (
-            <p>Trust Score: {profile.trust_score.toFixed(1)}</p>
-          )}
-          <p>Status: {profile.is_public ? 'Public' : 'Private'}</p>
+          <div className="trust-container">
+            <TrustDisplay score={profile.trust_score} />
+          </div>
         </div>
       </div>
 

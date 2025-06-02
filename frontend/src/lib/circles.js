@@ -2,12 +2,12 @@
 import supabase from '../supabaseClient';
 
 export const CircleService = {
-  createCircle: ({ name, state, city, zip, type, icon }) =>
+  createCircle: ({ name, state, city, zipcode, type, icon }) =>
     supabase.rpc('create_circle', {
       _name:  name,
       _state: state,
       _city:  city,
-      _zip:   zip,
+      _zipcode:   zipcode,
       _type:  type,
       _icon:  icon,
     }),

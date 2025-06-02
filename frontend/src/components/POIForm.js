@@ -20,7 +20,7 @@ export default function PersonsOfInterestForm() {
     meet_type: '',
     where_met: '',
     platform: '',
-    zip: '',
+    zipcode: '',
     city: '',
     state: '',
     avatar_url: null,
@@ -43,7 +43,7 @@ export default function PersonsOfInterestForm() {
     }
   };
 
-  const handleZipLookup = async () => {
+  const handleZipcodeLookup = async () => {
     if (!form.zip) return;
     try {
       const res = await axios.get(`https://api.zippopotam.us/us/${form.zip}`);
@@ -115,7 +115,7 @@ export default function PersonsOfInterestForm() {
           dating_preference: form.dating_preference,
           age: form.age ? parseInt(form.age) : null,
           platform: form.platform,
-          zip: form.zip,
+          zipcode: form.zip,
           city: form.city,
           state: form.state,
           avatar_url: avatarUrl,
@@ -227,7 +227,7 @@ export default function PersonsOfInterestForm() {
           </div>
           <div className="form-control">
             <label>Zip Code</label>
-            <input name="zip" value={form.zip} onChange={handleChange} onBlur={handleZipLookup} />
+            <input name="zip Code" value={form.zip} onChange={handleChange} onBlur={handleZipcodeLookup} />
           </div>
           <div className="form-control">
             <label>City</label>

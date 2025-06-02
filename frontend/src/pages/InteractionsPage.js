@@ -5,6 +5,7 @@ import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
 import resolveAvatarUrl from '../lib/resolveAvatarUrl';
 import defaultAvatar from '../assets/default-avatar.png';
+import TrustDisplay from '../components/TrustDisplay';
 import '../App.css';
 
 export default function InteractionsPage() {
@@ -16,6 +17,17 @@ export default function InteractionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+
+  const [form, setForm] = useState({
+    date_of_experience: '',
+    locations: '',
+    profile_match_vote: '',
+    profile_inaccuracies: [],
+    what_went_right: '',
+    what_went_wrong: '',
+    screenshot_url: '',
+    verified_with_screenshot: false,
+  });
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -31,10 +43,7 @@ export default function InteractionsPage() {
           data.map(async (p) => ({
             value: p.id,
             label: p.main_alias,
-            data: {
-              ...p,
-              avatar_url: await resolveAvatarUrl(p.avatar_url),
-            },
+            data: { ...p, avatar_url: await resolveAvatarUrl(p.avatar_url) },
           }))
         );
         setPoiOptions(enriched);
@@ -45,17 +54,6 @@ export default function InteractionsPage() {
 
     fetchSuggestions();
   }, [searchInput]);
-
-  const [form, setForm] = useState({
-    date_of_experience: '',
-    locations: '',
-    profile_match_vote: '',
-    profile_inaccuracies: [],
-    what_went_right: '',
-    what_went_wrong: '',
-    screenshot_url: '',
-    verified_with_screenshot: false,
-  });
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -69,19 +67,15 @@ export default function InteractionsPage() {
     setSelectedPoi(selected);
   };
 
-  const CustomOption = (props) => {
-    const { data, innerRef, innerProps } = props;
+  const CustomOption = ({ data, innerRef, innerProps }) => {
     const poi = data.data;
-
     return (
       <div ref={innerRef} {...innerProps} className="select-option">
         <img src={poi.avatar_url || defaultAvatar} alt={poi.main_alias} className="avatar-thumb" />
         <div className="select-info">
-          <div className="alias">
-            {poi.main_alias} <small>({poi.platform || '-'})</small>
-          </div>
-          <div className="location">{poi.city || '–'}, {poi.state || ''}</div>
-          <div className="trust">❤️ {poi.trust_score ?? 0}</div>
+          <div className="alias">{poi.main_alias} <small>({poi.platform || '-'})</small></div>
+          <div className="location">{poi.city || '—'}, {poi.state || ''}</div>
+          <TrustDisplay score={poi.trust_score} />
         </div>
       </div>
     );
@@ -136,109 +130,111 @@ export default function InteractionsPage() {
   };
 
   return (
-    <div className="container">
-      <h2>Log an Interaction</h2>
+    <div className="container profile-edit-container">
+      <section className="dashboard-section">
+        <h2 className="dashboard-heading">Log an Interaction</h2>
 
-      {error && <p className="error">{error}</p>}
-      {successMessage && <p className="success">{successMessage}</p>}
+        {error && <p className="error-message">{error}</p>}
+        {successMessage && <p className="success-message">{successMessage}</p>}
 
-      <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label>Search for a person</label>
-          <Select
-            options={poiOptions}
-            onInputChange={(val) => setSearchInput(val)}
-            onChange={handlePoiChange}
-            getOptionLabel={(e) => e.label}
-            components={{ Option: CustomOption }}
-            placeholder="Start typing a name…"
-            isClearable
-            value={selectedPoi}
-          />
-        </div>
+        <form className="profile-edit-form" onSubmit={handleSubmit}>
+          <div className="profile-edit-fields">
+            <label>Search for a person</label>
+            <Select
+              options={poiOptions}
+              onInputChange={(val) => setSearchInput(val)}
+              onChange={handlePoiChange}
+              getOptionLabel={(e) => e.label}
+              components={{ Option: CustomOption }}
+              placeholder="Start typing a name…"
+              isClearable
+              value={selectedPoi}
+            />
+          </div>
 
-        <div className="input-group">
-          <label>Date of Experience *</label>
-          <input
-            type="date"
-            name="date_of_experience"
-            value={form.date_of_experience}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Location(s)</label>
-          <input
-            type="text"
-            name="locations"
-            value={form.locations}
-            onChange={handleInputChange}
-            placeholder="Enter location(s)"
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Profile Match Vote</label>
-          <select
-            name="profile_match_vote"
-            value={form.profile_match_vote}
-            onChange={handleInputChange}
-          >
-            <option value="">Select...</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-            <option value="partial">Partial</option>
-          </select>
-        </div>
-
-        <div className="input-group">
-          <label>What Went Right?</label>
-          <textarea
-            name="what_went_right"
-            value={form.what_went_right}
-            onChange={handleInputChange}
-            placeholder="Describe what went well…"
-          />
-        </div>
-
-        <div className="input-group">
-          <label>What Went Wrong?</label>
-          <textarea
-            name="what_went_wrong"
-            value={form.what_went_wrong}
-            onChange={handleInputChange}
-            placeholder="Describe what went wrong…"
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Screenshot URL (optional)</label>
-          <input
-            type="url"
-            name="screenshot_url"
-            value={form.screenshot_url}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>
+          <div className="profile-edit-fields">
+            <label>Date of Experience *</label>
             <input
-              type="checkbox"
-              name="verified_with_screenshot"
-              checked={form.verified_with_screenshot}
+              type="date"
+              name="date_of_experience"
+              value={form.date_of_experience}
               onChange={handleInputChange}
-            />{' '}
-            Verified with Screenshot
-          </label>
-        </div>
+              required
+            />
+          </div>
 
-        <button type="submit" className="btn" disabled={submitting}>
-          {submitting ? 'Submitting…' : 'Log Interaction'}
-        </button>
-      </form>
+          <div className="profile-edit-fields">
+            <label>Location(s)</label>
+            <input
+              type="text"
+              name="locations"
+              value={form.locations}
+              onChange={handleInputChange}
+              placeholder="Enter location(s)"
+            />
+          </div>
+
+          <div className="profile-edit-fields">
+            <label>Profile Match Vote</label>
+            <select
+              name="profile_match_vote"
+              value={form.profile_match_vote}
+              onChange={handleInputChange}
+            >
+              <option value="">Select...</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="partial">Partial</option>
+            </select>
+          </div>
+
+          <div className="profile-edit-fields">
+            <label>What Went Right?</label>
+            <textarea
+              name="what_went_right"
+              value={form.what_went_right}
+              onChange={handleInputChange}
+              placeholder="Describe what went well…"
+            />
+          </div>
+
+          <div className="profile-edit-fields">
+            <label>What Went Wrong?</label>
+            <textarea
+              name="what_went_wrong"
+              value={form.what_went_wrong}
+              onChange={handleInputChange}
+              placeholder="Describe what went wrong…"
+            />
+          </div>
+
+          <div className="profile-edit-fields">
+            <label>Screenshot URL (optional)</label>
+            <input
+              type="url"
+              name="screenshot_url"
+              value={form.screenshot_url}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="profile-edit-fields">
+            <label>
+              <input
+                type="checkbox"
+                name="verified_with_screenshot"
+                checked={form.verified_with_screenshot}
+                onChange={handleInputChange}
+              />{' '}
+              Verified with Screenshot
+            </label>
+          </div>
+
+          <button type="submit" className="btn" disabled={submitting}>
+            {submitting ? 'Submitting…' : 'Log Interaction'}
+          </button>
+        </form>
+      </section>
     </div>
   );
 }

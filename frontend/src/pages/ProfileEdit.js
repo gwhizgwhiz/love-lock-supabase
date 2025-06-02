@@ -23,7 +23,7 @@ export default function ProfileEdit() {
   const [age, setAge] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
-  const [zip, setZip] = useState('');
+  const [zipcode, setZipCode] = useState('');
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(defaultAvatar);
   const [saving, setSaving] = useState(false);
@@ -39,7 +39,7 @@ export default function ProfileEdit() {
       setAge(profile.age?.toString() || '');
       setCity(profile.city || '');
       setState(profile.state || '');
-      setZip(profile.zip || profile.zipcode || '');
+      setZipCode(profile.zipcode || profile.zipcode || '');
       setAvatarPreview(initialAvatarUrl || defaultAvatar);
     }
   }, [authLoading, profile, initialAvatarUrl]);
@@ -71,7 +71,7 @@ export default function ProfileEdit() {
         age: age === '' ? null : parseInt(age, 10),
         city,
         state,
-        zip,
+        zipcode,
         avatar_url: newAvatarKey,
         is_public: true
       };
@@ -156,7 +156,7 @@ export default function ProfileEdit() {
           <input type="text" value={state} onChange={e => setState(e.target.value)} />
         </label>
         <label>Zip Code
-          <input type="text" value={zip} onChange={e => setZip(e.target.value)} />
+          <input type="text" value={zipcode} onChange={e => setZipCode(e.target.value)} />
         </label>
       </div>
 

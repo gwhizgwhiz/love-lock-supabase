@@ -1,9 +1,10 @@
 // frontend/src/pages/PersonsOfInterestPage.js
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
 import resolveAvatarUrl from '../lib/resolveAvatarUrl';
+import TrustDisplay from '../components/TrustDisplay'; 
 import '../App.css';
 
 export default function PersonsOfInterestPage() {
@@ -21,7 +22,7 @@ export default function PersonsOfInterestPage() {
       try {
         const { data, error } = await supabase
           .from('person_of_interest')
-          .select('id, trust_badge, main_alias, avatar_url, city, state, trust_score, created_by, is_public')
+          .select('id, trust_badge, main_alias, avatar_url, city, state, zipcode, trust_score, created_by, is_public')
           .eq('is_public', true)
 
         if (error) throw error;
@@ -33,6 +34,7 @@ export default function PersonsOfInterestPage() {
             avatar_url: await resolveAvatarUrl(p.avatar_url),
             city: p.city || '',
             state: p.state || '',
+            zipcode: p.zipcode || '',
             trust_score: Number(p.trust_score) || 0,
             createdBy: p.created_by
           }))
@@ -66,13 +68,6 @@ export default function PersonsOfInterestPage() {
 
   if (error) return <p className="empty-state">{error}</p>;
 
-  const Hearts = ({ score }) => (
-    <div className="trust-score">
-      {'❤️'.repeat(Math.max(0, Math.min(5, Math.round(score))))}
-      <span className="score-number">{score.toFixed(1)}</span>
-    </div>
-  );
-
   return (
     <div className="container">
       <h2>Persons of Interest</h2>
@@ -81,7 +76,7 @@ export default function PersonsOfInterestPage() {
         <input
           className="search-input"
           type="text"
-          placeholder="Search by name, city, or state…"
+          placeholder="Search by name, city, state, or zipcode…"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -98,8 +93,11 @@ export default function PersonsOfInterestPage() {
     </div>
     <img src={p.avatar_url} alt={p.name || 'POI'} className="poi-avatar" />
     <div className="poi-name">{p.name || 'Unnamed'}</div>
-    <div className="poi-trust">Trust: {p.trust_score.toFixed(1)}</div>
-    <div className="poi-location">{p.city || '—'}, {p.state}</div>
+    <div className="poi-trust"><TrustDisplay score={p.trust_score} />
+    </div>
+    <div className="poi-location">{p.city || '—'}</div>
+    {/* <div className="poi-state">{p.state || '—'}</div>
+    <div className="zipcode">{p.zipcode || ''}</div> */}
     </Link>
     ))}
     </div>

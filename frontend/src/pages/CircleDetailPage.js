@@ -193,7 +193,7 @@ export default function CircleDetailPage() {
       </div>
 
       <p className="circle-info">
-        Location: {circle.city}, {circle.state} ({circle.zip})<br />
+        Location: {circle.city}, {circle.state} ({circle.zipcode})<br />
         Type: {circle.type}
       </p>
 

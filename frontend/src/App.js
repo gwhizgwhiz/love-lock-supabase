@@ -25,7 +25,6 @@ import Compose from './pages/Compose';
 import Inbox from './pages/Inbox';
 import Thread from './pages/Thread';
 
-import AddExperience from './components/AddExperience'; // Optional: remove if deprecated
 import InteractionsPage from './pages/InteractionsPage';
 import POIForm from './components/POIForm';
 import Settings from './pages/Settings';
@@ -89,7 +88,6 @@ export default function App() {
             <Route path="/threads" element={<Navigate to="/inbox" replace />} />
             <Route path="/threads/:threadId" element={<Thread />} />
 
-            <Route path="/add-experience" element={<AddExperience />} /> {/* Optional */}
             <Route path="/interactions" element={<InteractionsPage />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/preferences" element={<Preferences />} />

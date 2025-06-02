@@ -4,7 +4,7 @@ import { CircleService } from '../lib/circles';
 
 export default function CircleForm({ onCreated }) {
   const [form, setForm] = useState({
-    name: '', state: '', city: '', zip: '', type: 'public', icon: '🌟'
+    name: '', state: '', city: '', zipcode: '', type: 'public', icon: '🌟'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
@@ -21,7 +21,7 @@ export default function CircleForm({ onCreated }) {
     if (error) setError(error);
     else {
       setError(null);
-      setForm({ name:'', state:'', city:'', zip:'', type:'public', icon:'🌟' });
+      setForm({ name:'', state:'', city:'', zipcode:'', type:'public', icon:'🌟' });
       onCreated();
     }
   };
@@ -42,8 +42,9 @@ export default function CircleForm({ onCreated }) {
         value={form.city} onChange={handleChange} required
       />
       <input
-        name="zip" placeholder="ZIP"
-        value={form.zip} onChange={handleChange} required
+        name="zipcode" placeholder="Zip Code"
+        type="text" pattern="\d{5}" title="Must be a valid 5-digit zip code"
+        value={form.zipcode} onChange={handleChange} required
       />
       <select name="type" value={form.type} onChange={handleChange}>
         <option value="public">Public</option>
