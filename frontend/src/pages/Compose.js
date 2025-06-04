@@ -1,74 +1,96 @@
-// frontend/src/pages/Compose.jsx
-import React, { useState, useEffect } from 'react';
+// src/pages/Compose.jsx
+
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
+import '../App.css';
 
 export default function Compose() {
-  const { userId, profile, slug, avatarUrl, loading } = useCurrentUser();
-  const [profiles, setProfiles] = useState([]);
-  const [toUser, setToUser] = useState('');
+  const { userId, loading: userLoading } = useCurrentUser();
+  const [users, setUsers] = useState([]);
+  const [toUserId, setToUserId] = useState('');
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Load all users except self for selection
+  // Load other users for messaging (exclude self)
   useEffect(() => {
-    if (loading || !userId) return;
+    if (userLoading || !userId) return;
 
-    const loadProfiles = async () => {
-      const { data, error } = await supabase
-        .from('person_of_interest')
-        .select('created_by, slug')
-        .neq('created_by', userId);
+    const loadUsers = async () => {
+      setError(null);
+      try {
+        const { data, error: loadError } = await supabase
+          .from('profiles')
+          .select('user_id, name, avatar_url')
+          .neq('user_id', userId)
+          .order('user_id', { ascending: true });
 
-      if (error) {
-        console.error('Load profiles error:', error);
+        if (loadError) throw loadError;
+        setUsers(data || []);
+      } catch (err) {
+        console.error('Load users error:', err);
         setError('Could not load users.');
-      } else {
-        setProfiles(data);
       }
     };
 
-    loadProfiles();
-  }, [loading, userId]);
+    loadUsers();
+  }, [userLoading, userId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!toUser || !text.trim()) return;
+    if (!toUserId || !text.trim()) {
+      setError('Please select a recipient and enter a message.');
+      return;
+    }
 
     setSending(true);
     setError(null);
 
     try {
-      // Create thread
-      const { data: threads, error: threadErr } = await supabase
+      let threadId;
+
+      const { data: insertedThread, error: insertError } = await supabase
         .from('message_threads')
-        .insert({ user_one: userId, user_two: toUser })
+        .insert({ user_one: userId, user_two: toUserId })
         .select('id');
 
-      if (threadErr) throw threadErr;
-      const threadId = threads[0].id;
+      if (insertError && insertError.code !== '23505') throw insertError;
 
-      // Send first message via RPC
-      const { error: msgErr } = await supabase.rpc('send_message', {
+      threadId = insertedThread?.[0]?.id;
+
+      if (!threadId) {
+        const { data: existingThread, error: existingError } = await supabase
+          .from('message_threads')
+          .select('id')
+          .or(`user_one.eq.${userId},user_two.eq.${toUserId}`)
+          .or(`user_one.eq.${toUserId},user_two.eq.${userId}`)
+          .maybeSingle();
+
+        if (existingError) throw existingError;
+        if (!existingThread) throw new Error('Unable to find or create thread.');
+        threadId = existingThread.id;
+      }
+
+      const { error: messageError } = await supabase.rpc('send_message', {
         p_thread_id: threadId,
         p_text: text.trim(),
       });
 
-      if (msgErr) throw msgErr;
+      if (messageError) throw messageError;
 
       navigate(`/threads/${threadId}`);
     } catch (err) {
       console.error('Compose error:', err);
-      setError(err.message || 'Unknown error');
+      setError(err.message || 'An error occurred.');
     } finally {
       setSending(false);
     }
   };
 
-  if (loading) return <div className="spinner" />;
+  if (userLoading) return <div className="spinner">Loading…</div>;
 
   return (
     <div className="inbox-container">
@@ -80,22 +102,23 @@ export default function Compose() {
         </Link>
 
         <h1>New Message</h1>
+
         <form onSubmit={handleSubmit} className="form">
           <label>
             To
             <select
               className="input-field"
-              value={toUser}
-              onChange={e => setToUser(e.target.value)}
+              value={toUserId}
+              onChange={(e) => setToUserId(e.target.value)}
               required
             >
-              <option value="">— select a user —</option>
-              {profiles.map(p => (
-                <option key={p.created_by} value={p.created_by}>
-                  {p.slug}
+              <option value="">— Select a user —</option>
+              {users.map((u) => (
+                <option key={u.user_id} value={u.user_id}>
+                  {u.name}
                 </option>
               ))}
-            </select>
+          </select>
           </label>
 
           <label>
@@ -104,7 +127,8 @@ export default function Compose() {
               className="input-field"
               rows={4}
               value={text}
-              onChange={e => setText(e.target.value)}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Write your message…"
               required
             />
           </label>

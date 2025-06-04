@@ -1,5 +1,4 @@
-// src/pages/Inbox.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
@@ -20,22 +19,18 @@ export default function Inbox() {
       setError(null);
 
       try {
-        // Fetch threads where the user is a participant
-        const { data: threadsData, error: threadsError } = await supabase
+        const { data: threads, error: threadsError } = await supabase
           .from('message_threads')
-          .select('id, user_one, user_two, last_message_at')
+          .select('*, messages(*)')
           .or(`user_one.eq.${userId},user_two.eq.${userId}`)
-          .order('last_message_at', { ascending: false });
-
+          .order('updated_at', { ascending: false });
 
         if (threadsError) throw threadsError;
 
-        // Map threads to include other user's profile info
         const mappedThreads = await Promise.all(
-          (threadsData || []).map(async (thread) => {
+          (threads || []).map(async (thread) => {
             const otherUserId = thread.user_one === userId ? thread.user_two : thread.user_one;
 
-            // Fetch the other user's profile
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('first_name, last_name, slug, avatar_url')
@@ -47,7 +42,6 @@ export default function Inbox() {
               return null;
             }
 
-            // Fetch unread count for this thread
             const { count, error: countError } = await supabase
               .from('messages')
               .select('*', { count: 'exact', head: true })
@@ -61,7 +55,7 @@ export default function Inbox() {
 
             return {
               thread_id: thread.id,
-              last_message_at: thread.last_message_at,
+              last_message_at: thread.updated_at || thread.last_message_at,
               unread_count: count || 0,
               other_user_name: `${profileData.first_name} ${profileData.last_name}`,
               other_user_slug: profileData.slug,

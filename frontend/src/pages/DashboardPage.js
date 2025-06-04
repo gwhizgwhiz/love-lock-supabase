@@ -27,7 +27,7 @@ export default function DashboardPage() {
         // Profile
         const { data: prof, error: profErr } = await supabase
           .from('profiles')
-          .select('id, user_id, name, avatar_url, trust_score, is_verified, gender_identity, age, dating_preference, city, state, zip, is_public')
+          .select('id, user_id, name, avatar_url, is_verified, gender_identity, age, dating_preference, city, state, zipcode, is_public')
           .eq('user_id', userId)
           .single();
 

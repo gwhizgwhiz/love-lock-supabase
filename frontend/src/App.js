@@ -18,7 +18,7 @@ import ResetPassword from './pages/ResetPassword';
 
 import DashboardPage from './pages/DashboardPage';
 import ProfileCreate from './pages/ProfileCreate';
-import ProfileDetail from './pages/ProfileDetail';
+import POIDetailPage from './pages/POIDetailPage';
 import ProfileEdit from './pages/ProfileEdit';
 
 import Compose from './pages/Compose';
@@ -26,7 +26,6 @@ import Inbox from './pages/Inbox';
 import Thread from './pages/Thread';
 
 import InteractionsPage from './pages/InteractionsPage';
-import POIForm from './components/POIForm';
 import Settings from './pages/Settings';
 import Preferences from './pages/Preferences';
 import MyCirclesPage from './pages/MyCirclesPage';
@@ -74,9 +73,8 @@ export default function App() {
           {/* Protected */}
           <Route element={<RequireAuth />}>
             <Route path="/create-profile" element={<ProfileCreate />} />
-            <Route path="/profiles/:id" element={<ProfileDetail />} /> {/* Shared detail for profiles & POIs */}
-            <Route path="/persons" element={<PersonsOfInterest />} /> {/* New page for POIs */}
-            <Route path="/add-poi" element={<POIForm />} />
+            <Route path="/poi/:slug" element={<POIDetailPage />} /> 
+            <Route path="/persons" element={<PersonsOfInterest />} />
 
             <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/dashboard" element={<DashboardPage />} />

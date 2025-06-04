@@ -22,7 +22,7 @@ export default function PersonsOfInterestPage() {
       try {
         const { data, error } = await supabase
           .from('person_of_interest')
-          .select('id, trust_badge, main_alias, avatar_url, city, state, zipcode, trust_score, created_by, is_public')
+          .select('id, slug, trust_badge, main_alias, avatar_url, city, state, zipcode, trust_score, created_by, is_public')
           .eq('is_public', true)
 
         if (error) throw error;
@@ -30,6 +30,7 @@ export default function PersonsOfInterestPage() {
         const resolvedPois = await Promise.all(
           (data || []).map(async p => ({
             id: p.id,
+            slug: p.slug, 
             name: p.trust_badge || p.main_alias || '',
             avatar_url: await resolveAvatarUrl(p.avatar_url),
             city: p.city || '',
@@ -87,7 +88,7 @@ export default function PersonsOfInterestPage() {
       ) : (
         <div className="poi-grid">
   {filteredPois.map(p => (
-    <Link key={p.id} to={`/profiles/${p.id}`} className="poi-card">
+    <Link key={p.id} to={`/poi/${p.slug}`} className="poi-card">
     <div className="poi-badge-container">
         {p.createdBy === userId && <span className="badge">This is you</span>}
     </div>
@@ -96,8 +97,6 @@ export default function PersonsOfInterestPage() {
     <div className="poi-trust"><TrustDisplay score={p.trust_score} />
     </div>
     <div className="poi-location">{p.city || '—'}</div>
-    {/* <div className="poi-state">{p.state || '—'}</div>
-    <div className="zipcode">{p.zipcode || ''}</div> */}
     </Link>
     ))}
     </div>

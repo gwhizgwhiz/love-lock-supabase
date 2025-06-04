@@ -37,7 +37,7 @@ export default function useCurrentUser() {
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, user_id, name, slug, avatar_url, trust_score, gender_identity, dating_preference, city, state, zipcode')
+        .select('id, user_id, name, slug, avatar_url, gender_identity, dating_preference, city, state, zipcode')
         .eq('user_id', user.id)
         .single();
 
