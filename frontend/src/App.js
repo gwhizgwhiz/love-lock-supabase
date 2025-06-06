@@ -19,6 +19,7 @@ import ResetPassword from './pages/ResetPassword';
 import DashboardPage from './pages/DashboardPage';
 import ProfileCreate from './pages/ProfileCreate';
 import POIDetailPage from './pages/POIDetailPage';
+import InteractionDetailPage from './pages/InteractionDetailPage';
 import ProfileEdit from './pages/ProfileEdit';
 
 import Compose from './pages/Compose';
@@ -69,6 +70,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ResetRequest />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/persons" element={<PersonsOfInterest />} /> {/* 🔥 POI page */}
+          <Route path="/interactions/view/:id" element={<InteractionDetailPage />} />
 
           {/* Protected */}
           <Route element={<RequireAuth />}>

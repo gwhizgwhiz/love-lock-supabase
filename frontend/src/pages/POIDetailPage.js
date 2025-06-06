@@ -1,13 +1,13 @@
-// src/pages/ProfileDetailPage.jsx
+// src/pages/POIDetailPage.jsx
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import useCurrentUser from '../hooks/useCurrentUser';
 import supabase from '../supabaseClient';
 import resolveAvatarUrl from '../lib/resolveAvatarUrl';
 import TrustDisplay from '../components/TrustDisplay';
 import '../App.css';
 
-export default function ProfileDetailPage() {
+export default function POIDetailPage() {
   const { loading: userLoading } = useCurrentUser();
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ export default function ProfileDetailPage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [interactions, setInteractions] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -48,6 +49,26 @@ export default function ProfileDetailPage() {
 
     fetchProfile();
   }, [slug]);
+
+  useEffect(() => {
+    const fetchInteractions = async () => {
+      if (!profile?.id) return;
+
+      const { data, error } = await supabase
+        .from('interactions')
+        .select('id, date_of_experience, what_went_right, what_went_wrong, profile_match_vote')
+        .eq('poi_id', profile.id)
+        .order('date_of_experience', { ascending: false });
+
+      if (!error && data) {
+        setInteractions(data);
+      } else {
+        console.error('Error fetching interactions:', error);
+      }
+    };
+
+    fetchInteractions();
+  }, [profile?.id]);
 
   if (loading || userLoading) {
     return (
@@ -89,7 +110,7 @@ export default function ProfileDetailPage() {
 
           <button
             className="btn-outline btn-small"
-            onClick={() => navigate(`/interactions?poiId=${profile.poi_id}`)}
+            onClick={() => navigate(`/interactions?slug=${profile.slug}`)}
           >
             Log an Interaction
           </button>
@@ -132,6 +153,27 @@ export default function ProfileDetailPage() {
           <ul>
             {Object.entries(profile.location_distribution).map(([location, count]) => (
               <li key={location}>{location}: {count}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {interactions.length > 0 && (
+        <div className="dashboard-section">
+          <h3 className="section-header">Recent Interactions</h3>
+          <ul className="interaction-list">
+            {interactions.map((i) => (
+              <li key={i.id} className="interaction-card">
+                <p><strong>Date:</strong> {new Date(i.date_of_experience).toLocaleDateString()}</p>
+                {i.profile_match_vote && <p><strong>Match Vote:</strong> {i.profile_match_vote}</p>}
+                {i.what_went_right && <p><strong>Went Right:</strong> {i.what_went_right}</p>}
+                {i.what_went_wrong && <p><strong>Went Wrong:</strong> {i.what_went_wrong}</p>}
+                <p>
+                  <Link to={`/interactions/view/${i.id}`} className="interaction-link">
+                    View full report →
+                  </Link>
+                </p>
+              </li>
             ))}
           </ul>
         </div>

@@ -1,6 +1,6 @@
 // src/pages/InteractionsPage.jsx
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Select from 'react-select';
 import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
@@ -24,9 +24,10 @@ const defaultForm = {
 };
 
 export default function InteractionsPage() {
-  const { userId, loading: userLoading } = useCurrentUser();
+  const { userId } = useCurrentUser();
   const [searchParams] = useSearchParams();
-  const poiIdFromUrl = searchParams.get('poiId');
+  const slugFromUrl = searchParams.get('slug');
+  const navigate = useNavigate();
 
   const [poiOptions, setPoiOptions] = useState([]);
   const [selectedPoi, setSelectedPoi] = useState(null);
@@ -38,13 +39,13 @@ export default function InteractionsPage() {
 
   useEffect(() => {
     const fetchPOIById = async () => {
-      if (!poiIdFromUrl) return;
+      if (!slugFromUrl) return;
       setError('');
       try {
         const { data, error } = await supabase
           .from('person_of_interest')
-          .select('id, main_alias, platform, avatar_url, city, state, trust_score')
-          .eq('id', poiIdFromUrl)
+          .select('id, slug, main_alias, platform, avatar_url, city, state, trust_score')
+          .eq('slug', slugFromUrl)
           .single();
 
         if (error || !data) {
@@ -64,7 +65,8 @@ export default function InteractionsPage() {
     };
 
     fetchPOIById();
-  }, [poiIdFromUrl]);
+  }, [slugFromUrl]);
+  
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -163,10 +165,12 @@ export default function InteractionsPage() {
     if (insertError) {
       setError(insertError.message);
     } else {
-      setSuccessMessage('Interaction logged successfully!');
+      navigate(`/poi/${slugFromUrl}`);
+      /* setSuccessMessage('Interaction logged successfully!');
+      setTimeout(() => setSuccessMessage(''), 4000);
       setForm(defaultForm);
       setSelectedPoi(null);
-      setSearchInput('');
+      setSearchInput(''); */
     }
 
     setSubmitting(false);
@@ -255,10 +259,17 @@ export default function InteractionsPage() {
           </div>
 
           {form.profile_match_vote === 'inaccurate' && (
-            <div className="profile-edit-fields">
-              <label>What was inaccurate?</label>
-              {['Looks better', 'Looks worse', 'Older', 'Younger', 'Shorter', 'Taller', 'Heavier', 'Thinner', 'Hair', 'No hair'].map((label) => (
-                <div key={label}>
+          <div className="profile-edit-fields">
+            <label>What was inaccurate?</label>
+            <div className="checkbox-group">
+              {[
+                'Looks better', 'Looks worse',
+                'Older', 'Younger',
+                'Shorter', 'Taller',
+                'Heavier', 'Thinner',
+                'Hair', 'No hair',
+              ].map((label) => (
+                <div key={label} className="checkbox-item">
                   <label>
                     <input
                       type="checkbox"
@@ -270,7 +281,9 @@ export default function InteractionsPage() {
                 </div>
               ))}
             </div>
-          )}
+          </div>
+        )}
+
 
           <div className="profile-edit-fields">
             <label>What Went Right?</label>

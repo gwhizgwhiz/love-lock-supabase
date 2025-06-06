@@ -1042,3 +1042,46 @@ select {
   gap: 0.5rem;
   font-weight: 600;
 }
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 200px;
+}
+
+.form-success-banner {
+  background-color: #e8f9f0;
+  border: 1px solid #a2e3c4;
+  color: #276749;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.interaction-detail {
+  padding: 1rem;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.interaction-link {
+  font-size: 0.9rem;
+  color: var(--brand-red);
+  text-decoration: none;
+}
+
+.interaction-link:hover {
+  text-decoration: underline;
+}
