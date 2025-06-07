@@ -62,21 +62,23 @@ export default function Compose() {
       threadId = insertedThread?.[0]?.id;
 
       if (!threadId) {
-        const { data: existingThread, error: existingError } = await supabase
+        const { data: existingThreads, error: existingError } = await supabase
           .from('message_threads')
           .select('id')
-          .or(`user_one.eq.${userId},user_two.eq.${toUserId}`)
-          .or(`user_one.eq.${toUserId},user_two.eq.${userId}`)
-          .maybeSingle();
+          .or(`and(user_one.eq.${userId},user_two.eq.${toUserId}),and(user_one.eq.${toUserId},user_two.eq.${userId})`)
+          .limit(1);
 
         if (existingError) throw existingError;
-        if (!existingThread) throw new Error('Unable to find or create thread.');
-        threadId = existingThread.id;
+        if (!existingThreads) throw new Error('Unable to find or create thread.');
+        threadId = existingThreads[0].id;
       }
 
       const { error: messageError } = await supabase.rpc('send_message', {
-        p_thread_id: threadId,
-        p_text: text.trim(),
+        sender: userId,
+        recipient: toUserId,
+        message_text: text.trim(),
+        reply_to: null,          // or set if replying to a specific message
+        poi: null,               // or set the POI id if linking to a person of interest
       });
 
       if (messageError) throw messageError;

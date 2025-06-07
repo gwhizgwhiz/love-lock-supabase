@@ -1,8 +1,9 @@
 // src/pages/Thread.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
+import resolveAvatarUrl from '../lib/resolveAvatarUrl';
 import '../App.css';
 
 export default function Thread() {
@@ -11,6 +12,10 @@ export default function Thread() {
   const [messages, setMessages] = useState([]);
   const [newText, setNewText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [recipientId, setRecipientId] = useState(null);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientAvatar, setRecipientAvatar] = useState('');
+  const bottomRef = useRef(null);
 
   // Load messages
   useEffect(() => {
@@ -19,109 +24,158 @@ export default function Thread() {
     const loadMessages = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from('message')
-        .select('*')
-        .eq('thread_id', threadId)
+        .from('messages')
+        .select('*, sender:profiles!messages_sender_id_profiles_fkey(name, avatar_url)')
+        .eq('message_thread_id', threadId)
         .order('created_at', { ascending: true });
 
-      if (error) console.error('Error fetching messages:', error);
-      else setMessages(data || []);
+      if (error) {
+        console.error('Error fetching messages:', error);
+        setMessages([]);
+      } else {
+        setMessages(data || []);
+
+        const participantIds = data
+          .map(m => [m.sender_id, m.receiver_id])
+          .flat()
+          .filter(Boolean);
+        const otherId = participantIds.find(id => id !== userId);
+        if (otherId) {
+          setRecipientId(otherId);
+
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('name, avatar_url')
+            .eq('user_id', otherId)
+            .single();
+
+          if (!profileError && profile) {
+            setRecipientName(profile.name);
+            const avatarUrl = await resolveAvatarUrl(profile.avatar_url);
+            setRecipientAvatar(avatarUrl);
+          }
+        }
+      }
       setLoading(false);
     };
 
     loadMessages();
+  }, [threadId, userId]);
+
+  // Subscribe to all inserts, then filter inside handler
+  useEffect(() => {
+    if (!threadId) return;
+
+    const channel = supabase
+      .channel(`thread-messages-${threadId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        payload => {
+          const newMsg = payload.new;
+          if (newMsg.message_thread_id === threadId) {
+            setMessages(prev => {
+              if (prev.some(m => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [threadId]);
 
-  // Send a reply
+  // Mark messages as read
+  useEffect(() => {
+    const markMessagesAsRead = async () => {
+      if (!userId || !threadId) return;
+
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('message_thread_id', threadId)
+        .eq('receiver_id', userId)
+        .is('read_at', null);
+
+      if (error) console.warn('Failed to mark as read:', error);
+    };
+
+    markMessagesAsRead();
+  }, [userId, threadId]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Send a reply using RPC
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newText.trim() || !threadId || !userId) return;
+    if (!newText.trim() || !threadId || !userId || !recipientId) return;
 
-    const { data, error } = await supabase
-      .from('message')
-      .insert([{ thread_id: threadId, text: newText.trim(), sender_id: userId }])
-      .select()
-      .single();
+    const { error } = await supabase.rpc('send_message', {
+      sender: userId,
+      recipient: recipientId,
+      message_text: newText.trim(),
+      reply_to: null,
+      poi: null,
+    });
 
     if (error) {
       console.error('Error sending message:', error);
     } else {
-      setMessages((prev) => [...prev, data]);
       setNewText('');
     }
   };
 
-  // Delete your own message
-  const deleteMessage = async (id) => {
-    const { error } = await supabase.from('messages').delete().eq('id', id);
-    if (error) {
-      console.error('Error deleting message:', error);
-    } else {
-      setMessages((prev) => prev.filter((m) => m.id !== id));
-    }
-  };
-
-  if (loading || userLoading) return <div style={{ padding: 16 }}>Loading conversation…</div>;
+  if (loading || userLoading) return <div className="container thread-container">Loading conversation…</div>;
 
   return (
-    <div style={{ padding: 16 }}>
-      <h1>Conversation</h1>
-      <div style={{ maxHeight: '60vh', overflowY: 'auto', marginBottom: 16 }}>
+    <div className="container thread-container">
+      <div className="conversation-header">
+        {recipientAvatar && <img src={recipientAvatar} alt="avatar" className="poi-avatar" />}
+        <p className="section-header">Conversation with {recipientName || '...'}</p>
+      </div>
+      <div className="message-thread">
         {messages.map((m) => {
           const isOwn = m.sender_id === userId;
           return (
             <div
               key={m.id}
-              style={{
-                margin: '8px 0',
-                textAlign: isOwn ? 'right' : 'left',
-              }}
+              className={`message-bubble ${isOwn ? 'own-message' : 'their-message'}`}
             >
-              <div
-                style={{
-                  display: 'inline-block',
-                  background: isOwn ? '#DCF8C6' : '#FFF',
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  position: 'relative',
-                }}
-              >
-                {m.text}
-                {isOwn && (
-                  <button
-                    onClick={() => deleteMessage(m.id)}
-                    style={{
-                      position: 'absolute',
-                      top: -8,
-                      right: -8,
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#999',
-                      cursor: 'pointer',
-                    }}
-                    title="Delete"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-              <div style={{ fontSize: '0.75em', color: '#666' }}>
-                {new Date(m.created_at).toLocaleTimeString()}
-              </div>
+              <div className="message-content">{m.content}</div>
+              {!isOwn && (
+                <div className="message-sender">{m.sender?.name}</div>
+              )}
+              <div className="message-time">{new Date(m.created_at).toLocaleTimeString()}</div>
             </div>
           );
         })}
+        <div ref={bottomRef} />
       </div>
-      <form onSubmit={sendMessage}>
+      <form className="message-form" onSubmit={sendMessage}>
         <textarea
           rows={3}
-          style={{ width: '100%', padding: 8 }}
+          className="message-input"
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           placeholder="Type your message…"
           required
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage(e);
+            }
+          }}
         />
-        <button className="btn" type="submit" style={{ marginTop: 8 }}>
+        <button className="btn" type="submit">
           Send
         </button>
       </form>

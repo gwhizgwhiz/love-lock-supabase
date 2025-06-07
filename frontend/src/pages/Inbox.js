@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
+import resolveAvatarUrl from '../lib/resolveAvatarUrl';
+
 import '../App.css';
 
 export default function Inbox() {
-  const { userId, profile, slug, avatarUrl, loading: userLoading } = useCurrentUser();
+  const { userId, loading: userLoading } = useCurrentUser();
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState('');
+  
 
   useEffect(() => {
     const fetchInbox = async () => {
@@ -29,11 +32,16 @@ export default function Inbox() {
 
         const mappedThreads = await Promise.all(
           (threads || []).map(async (thread) => {
-            const otherUserId = thread.user_one === userId ? thread.user_two : thread.user_one;
+            const otherUserId = [thread.user_one, thread.user_two].find(id => id && id !== userId);
+
+          if (!otherUserId) {
+            console.warn('⚠️ Could not resolve other participant from thread:', thread);
+            return null; // Skip this thread
+          }
 
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')
-              .select('first_name, last_name, slug, avatar_url')
+              .select('name, slug, avatar_url')
               .eq('user_id', otherUserId)
               .single();
 
@@ -53,13 +61,15 @@ export default function Inbox() {
               console.warn('Unread count error:', countError);
             }
 
+            const avatar = await resolveAvatarUrl(profileData.avatar_url);
+
             return {
               thread_id: thread.id,
               last_message_at: thread.updated_at || thread.last_message_at,
               unread_count: count || 0,
-              other_user_name: `${profileData.first_name} ${profileData.last_name}`,
+              other_user_name: `${profileData.name}`,
               other_user_slug: profileData.slug,
-              other_user_avatar_url: profileData.avatar_url || '/default-avatar.png',
+              other_user_avatar_url: avatar,
             };
           })
         );
@@ -87,7 +97,7 @@ export default function Inbox() {
   return (
     <div className="inbox-container">
       <div className="inbox-card">
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
+        <div className="inbox-header">
           <Link to="/compose" className="btn">New Message</Link>
           <input
             type="text"
@@ -107,27 +117,27 @@ export default function Inbox() {
           <ul className="message-list">
             {filteredThreads.map(t => (
               <li key={t.thread_id} className="message-item">
-                <Link to={`/threads/${t.thread_id}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+                <Link to={`/threads/${t.thread_id}`} className="message-item-link">
                   <img
+                    className="avatar-menu-avatar"
                     src={t.other_user_avatar_url}
                     alt={`${t.other_user_name} avatar`}
-                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', marginRight: '0.75rem' }}
                   />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div className="message-details">
+                    <div className="message-meta">
                       <strong>{t.other_user_name}</strong>
                       {t.unread_count > 0 && (
-                        <span style={{ marginLeft: '0.5rem', background: 'var(--brand-red)', color: 'white', borderRadius: '1em', padding: '0 .5em', fontSize: '0.8em' }}>
+                        <span className="message-unread-badge">
                           {t.unread_count}
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.8em', color: '#666' }}>
+                    <div className="message-timestamp">
                       Last message: {new Date(t.last_message_at).toLocaleString()}
                     </div>
                   </div>
                 </Link>
-                <Link to={`/profiles/${t.other_user_slug}`} style={{ marginLeft: '1rem' }} title="View profile">
+                <Link to={`/profiles/${t.other_user_slug}`} className="profile-link" title="View profile">
                   View Profile
                 </Link>
               </li>

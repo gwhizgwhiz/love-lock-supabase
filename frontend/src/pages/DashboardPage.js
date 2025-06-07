@@ -11,7 +11,7 @@ export default function DashboardPage() {
   const { userId, loading } = useCurrentUser();
   const [profile, setProfile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(defaultAvatar);
-  const [circles, setCircles] = useState([]);
+  // const [circles, setCircles] = useState([]);
   const [inboxCount, setInboxCount] = useState(0);
   const [interactions, setInteractions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,14 +37,14 @@ export default function DashboardPage() {
         setAvatarUrl(await resolveAvatarUrl(prof.avatar_url) || defaultAvatar);
 
 
-        // Circles
+      /*   // Circles
         const { data: circ, error: circErr } = await supabase
           .from('circles')
           .select('*')
           .eq('created_by', userId);
         if (circErr) throw circErr;
         console.log('Fetched circles:', circ);
-        setCircles(circ);
+        setCircles(circ); */
 
         // Interactions
         const { data: inter, error: interErr } = await supabase
@@ -104,7 +104,7 @@ export default function DashboardPage() {
     <p>You have <strong>{inboxCount}</strong> unread messages.</p>
   </section>
 
-  <section className="dashboard-section">
+  {/* <section className="dashboard-section">
     <div className="section-header">
       <h3>Your Circles</h3>
       <button className="btn btn-small btn-outline" onClick={() => navigate('/my-circles')}>Manage Circles</button>
@@ -121,7 +121,7 @@ export default function DashboardPage() {
         ))}
       </div>
     )}
-  </section>
+  </section> */}
 
   <section className="dashboard-section">
     <div className="section-header">

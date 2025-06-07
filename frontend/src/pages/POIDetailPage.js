@@ -5,10 +5,11 @@ import useCurrentUser from '../hooks/useCurrentUser';
 import supabase from '../supabaseClient';
 import resolveAvatarUrl from '../lib/resolveAvatarUrl';
 import TrustDisplay from '../components/TrustDisplay';
+import TagSelector from '../components/TagSelector';
 import '../App.css';
 
 export default function POIDetailPage() {
-  const { loading: userLoading } = useCurrentUser();
+  const { userId, loading: userLoading } = useCurrentUser();
   const { slug } = useParams();
   const navigate = useNavigate();
 
@@ -16,7 +17,29 @@ export default function POIDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [interactions, setInteractions] = useState([]);
+  const [userTag, setUserTag] = useState(null);
 
+  useEffect(() => {
+  if (!profile?.id || !userId) return;
+
+  const fetchUserTag = async () => {
+    const { data, error } = await supabase
+      .from('poi_tag_assignments')
+      .select('tag_id, tags(name)')
+      .eq('user_id', userId)
+      .eq('poi_id', profile.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('No tag assigned or fetch error:', error);
+    } else if (data) {
+      setUserTag(data.tags?.name || null);
+    }
+  };
+
+  fetchUserTag();
+}, [profile?.id, userId]);
+  
   useEffect(() => {
     const fetchProfile = async () => {
       if (!slug) {
@@ -106,6 +129,12 @@ export default function POIDetailPage() {
 
           <div className="trust-container">
             <TrustDisplay score={profile.trust_score} />
+            <TagSelector poiId={profile?.id} userId={userId} />
+            {userTag && (
+              <p className="tag-assigned-label">
+                You tagged this person as: <strong>{userTag}</strong>
+              </p>
+            )}
           </div>
 
           <button
