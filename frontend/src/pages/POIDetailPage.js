@@ -198,7 +198,7 @@ export default function POIDetailPage() {
                 {i.what_went_right && <p><strong>Went Right:</strong> {i.what_went_right}</p>}
                 {i.what_went_wrong && <p><strong>Went Wrong:</strong> {i.what_went_wrong}</p>}
                 <p>
-                  <Link to={`/interactions/view/${i.id}`} className="interaction-link">
+                  <Link to={`/interactions/${i.id}`} className="interaction-link">
                     View full report →
                   </Link>
                 </p>
