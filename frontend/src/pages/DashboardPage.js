@@ -59,7 +59,7 @@ export default function DashboardPage() {
         const { count, error: countErr } = await supabase
           .from('messages')
           .select('*', { count: 'exact', head: true })
-          .eq('recipient_id', userId)
+          .eq('receiver_id', userId)
           .eq('is_read', false);
         if (countErr) throw countErr;
         setInboxCount(count || 0);

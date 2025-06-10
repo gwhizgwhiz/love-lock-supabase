@@ -17,7 +17,6 @@ import ResetRequest from './pages/ResetRequest';
 import ResetPassword from './pages/ResetPassword';
 
 import DashboardPage from './pages/DashboardPage';
-import ProfileCreate from './pages/ProfileCreate';
 import POIDetailPage from './pages/POIDetailPage';
 import InteractionDetailPage from './pages/InteractionDetailPage';
 import ProfileEdit from './pages/ProfileEdit';
@@ -74,15 +73,12 @@ export default function App() {
 
           {/* Protected */}
           <Route element={<RequireAuth />}>
-            <Route path="/create-profile" element={<ProfileCreate />} />
             <Route path="/poi/:slug" element={<POIDetailPage />} /> 
             <Route path="/persons" element={<PersonsOfInterest />} />
-
             <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/my-circles" element={<MyCirclesPage />} />
             <Route path="/circles/:slug" element={<CircleDetailPage />} />
-
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/compose" element={<Compose />} />
             <Route path="/threads" element={<Navigate to="/inbox" replace />} />

@@ -1,5 +1,3 @@
-// src/pages/Compose.jsx
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
@@ -50,38 +48,18 @@ export default function Compose() {
     setError(null);
 
     try {
-      let threadId;
-
-      const { data: insertedThread, error: insertError } = await supabase
-        .from('message_threads')
-        .insert({ user_one: userId, user_two: toUserId })
-        .select('id');
-
-      if (insertError && insertError.code !== '23505') throw insertError;
-
-      threadId = insertedThread?.[0]?.id;
-
-      if (!threadId) {
-        const { data: existingThreads, error: existingError } = await supabase
-          .from('message_threads')
-          .select('id')
-          .or(`and(user_one.eq.${userId},user_two.eq.${toUserId}),and(user_one.eq.${toUserId},user_two.eq.${userId})`)
-          .limit(1);
-
-        if (existingError) throw existingError;
-        if (!existingThreads) throw new Error('Unable to find or create thread.');
-        threadId = existingThreads[0].id;
-      }
-
-      const { error: messageError } = await supabase.rpc('send_message', {
+      const { data, error: messageError } = await supabase.rpc('send_message', {
         sender: userId,
         recipient: toUserId,
         message_text: text.trim(),
-        reply_to: null,          // or set if replying to a specific message
-        poi: null,               // or set the POI id if linking to a person of interest
+        reply_to: null,
+        poi: null,
       });
-
+console.log('send_message result:', data); // 👈 Add this
       if (messageError) throw messageError;
+
+      const threadId = Array.isArray(data) ? data[0]?.thread_id : null;
+      if (!threadId) throw new Error('Thread ID not returned from message.');
 
       navigate(`/threads/${threadId}`);
     } catch (err) {
@@ -120,7 +98,7 @@ export default function Compose() {
                   {u.name}
                 </option>
               ))}
-          </select>
+            </select>
           </label>
 
           <label>

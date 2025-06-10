@@ -11,35 +11,52 @@ export default function RequireAuth() {
   const location = useLocation();
 
   useEffect(() => {
-    const checkStatus = async () => {
-      if (userLoading || !userId) return;
+  const checkStatusAndCreateProfile = async () => {
+    if (userLoading || !userId) return;
 
-      // Check email confirmation
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        setEmailConfirmed(false);
+    // Check email confirmation
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      setEmailConfirmed(false);
+      return;
+    }
+
+    setEmailConfirmed(!!user.email_confirmed_at);
+
+    // Check profile existence
+    const { data, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('Error checking profile:', profileError);
+      setHasProfile(false);
+      return;
+    }
+
+    if (!data) {
+      // No profile found — create it
+      const { error: insertError } = await supabase.from('profiles').insert([
+        { user_id: userId }
+      ]);
+
+      if (insertError) {
+        console.error('Error creating profile:', insertError);
+        setHasProfile(false);
         return;
       }
 
-      setEmailConfirmed(!!user.email_confirmed_at);
+      console.log('✅ Auto-created profile for user');
+      setHasProfile(true);
+    } else {
+      setHasProfile(true);
+    }
+  };
 
-      // Check profile existence
-      const { data, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1);
-
-      if (profileError) {
-        console.error('Error checking profile:', profileError);
-        setHasProfile(false);
-      } else {
-        setHasProfile(!!data.length);
-      }
-    };
-
-    checkStatus();
-  }, [userId, userLoading]);
+  checkStatusAndCreateProfile();
+}, [userId, userLoading]);
 
   if (userLoading || emailConfirmed === undefined || hasProfile === undefined) {
     return <div className="spinner">Loading...</div>;

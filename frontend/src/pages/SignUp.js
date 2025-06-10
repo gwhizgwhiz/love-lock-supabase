@@ -11,25 +11,31 @@ export default function SignUp() {
   const [error, setError] = useState(null);
   const [phase, setPhase] = useState('form'); // 'form' or 'verify'
   const navigate = useNavigate();
+  const [name, setName] = useState('');
+
 
   const handleSignUp = async (e) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          redirectTo: `${window.location.origin}/verify-email`,
-        },
-      });
+  e.preventDefault();
+  setError(null);
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        redirectTo: `${window.location.origin}/verify-email`,
+        data: { name }  // 👈 Still passing name
+      },
+    });
 
-      if (error) throw error;
-      setPhase('verify');
-    } catch (err) {
-      setError(err.message || 'An unexpected error occurred.');
-    }
-  };
+    if (error) throw error;
+
+    console.log('✅ Signup successful. User ID:', data?.user?.id); // 👈 Add this line
+
+    setPhase('verify');
+  } catch (err) {
+    setError(err.message || 'An unexpected error occurred.');
+  }
+};
 
   if (phase === 'verify') {
     return (
@@ -54,6 +60,15 @@ export default function SignUp() {
         <h1>Sign Up</h1>
         {error && <p className="error-message">{error}</p>}
         <form onSubmit={handleSignUp}>
+          <label>
+            Name:
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </label>
           <div className="input-group">
             <label>Email:</label>
             <input
