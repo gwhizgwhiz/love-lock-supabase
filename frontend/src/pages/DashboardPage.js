@@ -5,6 +5,7 @@ import supabase from '../supabaseClient';
 import useCurrentUser from '../hooks/useCurrentUser';
 import defaultAvatar from '../assets/default-avatar.png';
 import resolveAvatarUrl from '../lib/resolveAvatarUrl';
+import { Link } from 'react-router-dom';
 import '../App.css';
 
 export default function DashboardPage() {
@@ -51,7 +52,7 @@ export default function DashboardPage() {
           .from('interactions')
           .select('id, date_of_experience, what_went_right, what_went_wrong, profile_match_vote, person_of_interest(main_alias)')
           .eq('reporter_id', userId)
-          .order('created_at', { ascending: false });
+          .order('date_of_experience', { ascending: false });
         if (interErr) throw interErr;
         setInteractions(inter);
 
@@ -128,18 +129,27 @@ export default function DashboardPage() {
       <h3>Your Logged Interactions</h3>
       <button className="btn btn-small btn-outline" onClick={() => navigate('/interactions')}>Log One</button>
     </div>
-    {interactions.length === 0 ? (
-      <p>No interactions logged yet.</p>
-    ) : (
-      <ul className="timeline">
-        {interactions.map(i => (
-          <li key={i.id}>
-            <span><strong>{i.person_of_interest?.main_alias || 'Unknown'}</strong> ({i.profile_match_vote || 'No vote'})</span>
-            <span>{i.date_of_experience || 'No date'}</span>
-          </li>
-        ))}
-      </ul>
-    )}
+    <div className="interaction-list">
+  {interactions.length > 0 ? (
+    interactions.map((interaction) => {
+      const poi = interaction.person_of_interest || {};
+      const name = poi.main_alias || 'Unknown';
+      const vote = interaction.profile_match_vote || 'No vote';
+      const date = new Date(interaction.date_of_experience).toLocaleDateString();
+
+      return (
+        <div key={interaction.id} className="interaction-item">
+          <Link to={`/interactions/${interaction.id}`}>
+            <strong>{name}</strong> ({vote}) — {date}
+          </Link>
+        </div>
+      );
+    })
+  ) : (
+    <p>No interactions logged yet.</p>
+  )}
+</div>
+
   </section>
     </div>
   );

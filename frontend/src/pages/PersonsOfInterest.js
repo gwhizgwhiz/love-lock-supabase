@@ -90,7 +90,7 @@ export default function PersonsOfInterestPage() {
   {filteredPois.map(p => (
     <Link key={p.id} to={`/poi/${p.slug}`} className="poi-card">
     <div className="poi-badge-container">
-        {p.createdBy === userId && <span className="badge">This is you</span>}
+        {p.createdBy === userId && <span className="badge">Created by You</span>}
     </div>
     <img src={p.avatar_url} alt={p.name || 'POI'} className="poi-avatar" />
     <div className="poi-name">{p.name || 'Unnamed'}</div>

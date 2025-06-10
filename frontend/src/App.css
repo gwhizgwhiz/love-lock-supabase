@@ -1263,3 +1263,20 @@ select {
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
+
+.interaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.interaction-item a {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.interaction-item a:hover {
+  text-decoration: underline;
+}

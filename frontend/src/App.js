@@ -69,7 +69,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ResetRequest />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/persons" element={<PersonsOfInterest />} /> {/* 🔥 POI page */}
-          <Route path="/interactions/view/:id" element={<InteractionDetailPage />} />
+          <Route path="/interactions/:id" element={<InteractionDetailPage />} />
 
           {/* Protected */}
           <Route element={<RequireAuth />}>
